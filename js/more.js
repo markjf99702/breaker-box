@@ -30,7 +30,7 @@ export function searchScreen(house, { readOnly = false, into = app, info } = {})
         return `<li><button type="button" class="res" data-t="${t.id}">${icon(t.kind, 'k')}<span><b>${esc(t.name)}</b><small>${roomDot(r)}${esc(r?.name || '')}</small></span>${badge(house, t.circuitId, 'big')}</button></li>`;
       }).join('')}</ul>` : ''}
       ${circuits.length ? `<h2 class="group-h">Breakers</h2><ul class="results">${circuits.slice(0, 40).map(c => `
-        <li><button type="button" class="res" data-c="${c.id}">${badge(house, c.id, 'big')}<span><b>${esc(M.labelOf(house, c) || (c.tested ? 'Nothing found' : 'Not mapped yet'))}</b><small>${c.amps} A · ${M.BREAKER_KINDS[c.kind]}${house.panels.length > 1 ? ` · ${esc(M.panelOf(house, c).name)}` : ''}</small></span></button></li>`).join('')}</ul>` : ''}`;
+        <li><button type="button" class="res" data-c="${c.id}">${badge(house, c.id, 'big')}<span><b>${esc(M.labelOf(house, c) || (c.tested ? 'Nothing found' : 'Not mapped yet'))}</b><small>${c.amps}\u00a0A · ${M.BREAKER_KINDS[c.kind]}${house.panels.length > 1 ? ` · ${esc(M.panelOf(house, c).name)}` : ''}</small></span></button></li>`).join('')}</ul>` : ''}`;
   };
   input.addEventListener('input', draw);
   results.addEventListener('click', e => {

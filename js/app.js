@@ -183,7 +183,7 @@ function info(house, c) {
   if (!c) return;
   const things = M.thingsOn(house, c.id);
   sheet(`
-    <h2 class="sheet-h">Breaker ${M.circuitName(c)} <small>${c.amps} A${c.poles === 2 ? ' · 240 V' : ''} · ${M.BREAKER_KINDS[c.kind]}</small></h2>
+    <h2 class="sheet-h">Breaker ${M.circuitName(c)} <small>${c.amps}\u00a0A${c.poles === 2 ? ' · 240\u00a0V' : ''} · ${M.BREAKER_KINDS[c.kind]}</small></h2>
     <p class="hand big">${esc(M.labelOf(house, c) || (c.tested ? 'Nothing found' : 'Not mapped yet'))}</p>
     ${things.length ? `<ul class="on-list">${things.map(t => `<li>${roomDot(M.roomOf(house, t))}<span><b>${esc(t.name)}</b> <small>${esc(M.roomOf(house, t)?.name || '')}</small></span></li>`).join('')}</ul>` : ''}`);
 }

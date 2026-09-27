@@ -44,7 +44,7 @@ export function cardHTML(house, panel, size) {
       <div class="pcard" style="width:${w}in;height:${h}in" data-rows="${rows}">
         <header class="phead">
           <b>${esc(panel.name)}</b>
-          <span>${panel.mainAmps ? `${panel.mainAmps} A main` : 'No main breaker'}${fed ? ` · fed from ${M.circuitName(fed)}, ${esc(M.panelOf(house, fed).name)}` : ''}${panel.where ? ` · ${esc(panel.where)}` : ''}</span>
+          <span>${panel.mainAmps ? `${panel.mainAmps}\u00a0A main` : 'No main breaker'}${fed ? ` · fed from ${M.circuitName(fed)}, ${esc(M.panelOf(house, fed).name)}` : ''}${panel.where ? ` · ${esc(panel.where)}` : ''}</span>
         </header>
         <div class="pgrid" style="grid-template-rows:repeat(${rows}, minmax(0, 1fr))">${cells.join('')}</div>
         <footer class="pfoot"><span>${esc(house.name)}${tested.length ? ` · mapped ${month(Math.max(...tested))}` : ''}</span><span>Amps shown on the right. /240 is a double-pole breaker.</span></footer>

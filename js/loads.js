@@ -14,7 +14,7 @@ const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
 // One plain sentence or two about a breaker's load.
 export function loadLine(house, l) {
   const c = l.circuit;
-  const carries = `A ${c.amps} A breaker at ${M.volts(c)} V carries ${W(l.capacity)}`;
+  const carries = `A ${c.amps}\u00a0A breaker at ${M.volts(c)}\u00a0V carries ${W(l.capacity)}`;
   const big = [...l.items].sort((a, b) => b.watts - a.watts);
   const sub = l.sub ? ` That includes ${W(l.subTotal)} on ${esc(l.sub.name)}.` : '';
   let out;
@@ -58,7 +58,7 @@ export function loadsScreen(house) {
   const card = l => {
     const c = l.circuit;
     return `<button type="button" class="card load ${l.status}" data-c="${c.id}">
-      <div class="load-top"><span class="bno big">${M.circuitName(c)}</span><span class="load-name"><b>${esc(M.labelOf(house, c) || 'Not mapped')}</b><small>${c.amps} A · ${M.volts(c)} V${house.panels.length > 1 ? ` · ${esc(M.panelOf(house, c).name)}` : ''}</small></span></div>
+      <div class="load-top"><span class="bno big">${M.circuitName(c)}</span><span class="load-name"><b>${esc(M.labelOf(house, c) || 'Not mapped')}</b><small>${c.amps}\u00a0A · ${M.volts(c)}\u00a0V${house.panels.length > 1 ? ` · ${esc(M.panelOf(house, c).name)}` : ''}</small></span></div>
       ${loadBar(l)}
       <p class="load-say">${loadLine(house, l)}</p>
     </button>`;
@@ -69,7 +69,7 @@ export function loadsScreen(house) {
       <p>Each breaker carries its volts times its amps: 120 V × 15 A is ${W(1800)}. Things that run for hours at a time, like heaters, should stay under 80% of that. Breaker Box adds up the watts of what’s mapped to each breaker.</p>
       <p class="hint">The watts are typical figures. The label on an appliance has the real number; change it on the Rooms tab. Flipping breakers to map them is fine; opening the panel cover or changing wiring is a job for a licensed electrician.</p>
     </div>
-    <div class="tally">
+    <div class="tally"${known ? '' : ' hidden'}>
       <span class="t over"><b>${groups.over.length}</b> likely to trip</span>
       <span class="t tight"><b>${groups.tight.length}</b> close to the limit</span>
       <span class="t ok"><b>${groups.ok.length}</b> fine</span>

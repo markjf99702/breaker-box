@@ -60,7 +60,7 @@ export function panelDoor(house, panel, opts = {}) {
   }
   const fedBy = panel.fedBy && M.findCircuit(house, panel.fedBy);
   const main = panel.mainAmps
-    ? `<div class="main-brk"><span class="hdl dp big" aria-hidden="true"><i class="tog"></i><i class="tog two"></i><i class="tie"></i></span><span><b>Main ${panel.mainAmps} A</b>${fedBy ? `<br><small>Fed from ${M.circuitName(fedBy)} in ${esc(M.panelOf(house, fedBy).name)}</small>` : ''}</span></div>`
+    ? `<div class="main-brk"><span class="hdl dp big" aria-hidden="true"><i class="tog"></i><i class="tog two"></i><i class="tie"></i></span><span><b>Main ${panel.mainAmps}\u00a0A</b>${fedBy ? `<br><small>Fed from ${M.circuitName(fedBy)} in ${esc(M.panelOf(house, fedBy).name)}</small>` : ''}</span></div>`
     : `<div class="main-brk lugs"><span><b>No main breaker</b>${fedBy ? `<br><small>Fed from ${M.circuitName(fedBy)} in ${esc(M.panelOf(house, fedBy).name)}</small>` : ''}</span></div>`;
   return `
     <div class="door${opts.compact ? ' compact' : ''}">
@@ -99,8 +99,14 @@ export function panelScreen(house, index = 0) {
   const empty = M.emptySpaces(panel).length;
   const tabs = `<nav class="ptabs" aria-label="Panels">${house.panels.map((x, i) => `<a href="#/panel/${i}" ${x === panel ? 'aria-current="page"' : ''}>${esc(x.name)}</a>`).join('')}<a href="#/panel/new" class="add">${icon('plus')}Subpanel</a></nav>`;
   const usedRooms = house.rooms.filter(r => M.thingsIn(house, r.id).some(t => t.circuitId && M.panelOf(house, M.findCircuit(house, t.circuitId) || {}) === panel));
+  const fresh = !house.rooms.length && !p.mapped && index === 0;
   app.innerHTML = `
     ${tabs}
+    ${fresh ? `<div class="card start-card">
+      <h2>Next: the sizes, then the rooms</h2>
+      <p>Tap any breaker that isn’t a 15\u00a0A single-pole and change it: kitchens and baths are often 20\u00a0A, and the dryer, range, water heater and AC are usually double-pole. The size is printed on the handle.</p>
+      <a class="btn small" href="#/rooms">${icon('rooms')}List the rooms</a>
+    </div>` : ''}
     <div class="split">
       <section class="door-wrap">${panelDoor(house, panel)}</section>
       <aside class="side">

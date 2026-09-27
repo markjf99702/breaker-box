@@ -45,7 +45,7 @@ function hub(house) {
           <h2>${icon('map')}Breaker by breaker</h2>
           <p>Flip one breaker off, walk round and tap everything that went dead, then turn it back on. Take your phone, and a flashlight in case the lights go too.</p>
           ${next ? `
-            <div class="next-up">${handleBadge(next)}<div><b>Next: breaker ${M.circuitName(next)}</b><small>${next.amps} A${house.panels.length > 1 ? ` · ${esc(M.panelOf(house, next).name)}` : ''} · ${M.isMapped(house, next) ? 'not walked round yet' : 'nothing known yet'}</small></div></div>
+            <div class="next-up">${handleBadge(next)}<div><b>Next: breaker ${M.circuitName(next)}</b><small>${next.amps}\u00a0A${house.panels.length > 1 ? ` · ${esc(M.panelOf(house, next).name)}` : ''} · ${M.isMapped(house, next) ? 'not walked round yet' : 'nothing known yet'}</small></div></div>
             <button type="button" class="btn primary big wide" data-flip="${next.id}">Start with breaker ${M.circuitName(next)}</button>`
           : '<p class="done-note">Every breaker has been flipped and walked round.</p>'}
           <button type="button" class="btn wide" data-act="pick">Pick a different breaker</button>
@@ -59,7 +59,17 @@ function hub(house) {
           }).join('')}</ul>${unfound.length > 8 ? `<p class="hint">And ${unfound.length - 8} more on the Rooms tab.</p>` : ''}` : `<p class="hint">${house.things.length ? 'Everything listed has a breaker. Tap anything on the Rooms tab to check it again.' : 'Nothing listed yet. Add rooms and what’s in them on the Rooms tab, or add them as you go while a breaker is off.'}</p>`}
         </section>
       </div>
-      <aside class="side">${progressCard(house, p).replace(/<a class="btn primary wide" href="#\/map">.*?<\/a>/s, '')}</aside>
+      <aside class="side">${progressCard(house, p).replace(/<a class="btn primary wide" href="#\/map">.*?<\/a>/s, '')}
+        <div class="card tips">
+          <h2>Before you start</h2>
+          <ul>
+            <li>Save your work: computers and the internet router may be on the breaker you flip.</li>
+            <li>Turn on the lights in every room, and plug a lamp or a phone charger into outlets you can’t easily check.</li>
+            <li>If an outlet is dead but its breaker is on, look for a GFCI outlet nearby with a Reset button.</li>
+            <li>Keep the fridge and freezer shut while their breaker is off.</li>
+          </ul>
+        </div>
+      </aside>
     </div>`;
   on({
     click(e) {
@@ -109,7 +119,7 @@ function flipScreen(house) {
           ${loc.html}
           <div>
             <h1 class="say">Flip breaker ${name} off.</h1>
-            <p class="where">${c.amps} A${c.poles === 2 ? ' double-pole' : ''}. ${house.panels.length > 1 ? `In the ${esc(M.panelOf(house, c).name.toLowerCase())}, ${loc.where}` : cap(loc.where)}.</p>
+            <p class="where">${c.amps}\u00a0A${c.poles === 2 ? ' double-pole' : ''}. ${house.panels.length > 1 ? `In the ${esc(M.panelOf(house, c).name.toLowerCase())}, ${loc.where}` : cap(loc.where)}.</p>
             ${M.labelOf(house, c) ? `<p class="was">Marked now: <span class="hand">${esc(M.labelOf(house, c))}</span></p>` : ''}
           </div>
         </div>
@@ -255,7 +265,7 @@ function walkScreenKeep(house, c) {
   window.scrollTo(0, y);
 }
 
-const deadText = n => (n ? `${plural(n, 'thing')} dead` : 'Nothing tapped yet');
+const deadText = n => (n ? `${plural(n, 'thing')} dead` : '');
 
 function roomCount(house, r, c) {
   const things = M.thingsIn(house, r.id);
@@ -299,11 +309,11 @@ function findScreen(house) {
       <div class="flip-step">
         <p class="eyebrow">Found it</p>
         <h1 class="say">${esc(t.name)} is on breaker ${M.circuitName(c)}.</h1>
-        <p class="where">Turn ${M.circuitName(c)} back on.</p>
+        <p class="where">${c.tested ? `Turn ${M.circuitName(c)} back on.` : `Turn ${M.circuitName(c)} back on, or while it’s off, walk round and find everything else on it.`}</p>
         ${others.length ? `<div class="card found-card"><h2>Also on ${M.circuitName(c)}</h2><p>${others.map(x => `${esc(x.name)} <small>${esc(M.roomOf(house, x)?.name || '')}</small>`).join(', ')}</p></div>` : ''}
         <div class="step-actions">
           ${nextThing ? `<button type="button" class="btn primary big wide" data-find="${nextThing.id}">Next: ${esc(nextThing.name)} <small>${esc(M.roomOf(house, nextThing)?.name || '')}</small></button>` : ''}
-          <div class="row-btns"><button type="button" class="btn" data-act="done">Done</button></div>
+          <div class="row-btns">${c.tested ? '' : `<button type="button" class="btn" data-walk="${c.id}">Find the rest on ${M.circuitName(c)}</button>`}<button type="button" class="btn" data-act="done">Done</button></div>
         </div>
       </div>`;
   } else {
@@ -321,7 +331,7 @@ function findScreen(house) {
           <div class="card try-card">
             <div class="locate">${loc.html}<div>
               <h2 class="say">${last ? `Turn ${M.circuitName(last)} back on, then flip ${M.circuitName(c)} off.` : `Flip breaker ${M.circuitName(c)} off.`}</h2>
-              <p class="where">${c.amps} A. ${house.panels.length > 1 ? `In the ${esc(M.panelOf(house, c).name.toLowerCase())}, ${loc.where}` : cap(loc.where)}.</p>
+              <p class="where">${c.amps}\u00a0A. ${house.panels.length > 1 ? `In the ${esc(M.panelOf(house, c).name.toLowerCase())}, ${loc.where}` : cap(loc.where)}.</p>
               ${M.labelOf(house, c) ? `<p class="was">Marked: <span class="hand">${esc(M.labelOf(house, c))}</span></p>` : ''}
             </div></div>
             <p class="ask">Did it go off?</p>
@@ -343,6 +353,7 @@ function findScreen(house) {
       if (b.dataset.went) { M.wentOff(house, b.dataset.went); store.put(house); window.scrollTo(0, 0); findScreen(house); }
       if (b.dataset.still) { M.stillOn(house, b.dataset.still); store.put(house); findScreen(house); }
       if (b.dataset.find) start(house, M.startFind, b.dataset.find);
+      if (b.dataset.walk) { M.startFlip(house, b.dataset.walk).step = 'walk'; store.put(house); window.scrollTo(0, 0); mapScreen(house); }
       if (b.dataset.act === 'restart') start(house, M.startFind, t.id);
       if (b.dataset.act === 'pick') pickBreaker(house, id => { M.wentOff(house, id); store.put(house); findScreen(house); }, 'Which one turned it off?');
       if (b.dataset.act === 'stop' || b.dataset.act === 'done') { M.stopSession(house); store.put(house); mapScreen(house); }

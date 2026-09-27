@@ -66,7 +66,7 @@ await fits(page, 'setting up');
 await page.click('text=Make the panel');
 await page.locator('.door').waitFor();
 assert.equal(await page.locator('.door .brk').count(), 20, 'a 15 A breaker in each of 20 spaces');
-assert.match(await page.locator('.door').innerText(), /Main 100 A/);
+assert.match(await page.locator('.door').innerText(), /Main 100\sA/);
 assert.deepEqual(await page.locator('.num.left').allInnerTexts(), ['1', '3', '5', '7', '9', '11', '13', '15', '17', '19'], 'odd numbers down the left');
 await fits(page, 'the panel');
 
@@ -103,7 +103,7 @@ await room('Bedroom 1').locator('[data-quick$=":outlet"]').click();
 await room('Bedroom 1').locator('[data-quick$=":appliance"]').click();
 await page.click('#sheet [data-app="Space heater"]');
 await page.click('#sheet .sheet-actions [data-close]');
-assert.deepEqual(await room('Kitchen').locator('.tname').allInnerTexts(), ['Outlet 1', 'Outlet 2', 'Fridge\n700 W', 'Microwave\n1,500 W']);
+assert.deepEqual(await room('Kitchen').locator('.tname').allInnerTexts(), ['Outlet 1', 'Outlet 2', 'Fridge\n700\u00a0W', 'Microwave\n1,500\u00a0W']);
 // Name an outlet.
 await room('Bedroom 1').locator('.trow', { hasText: 'Outlet 1' }).click();
 await page.click('#sheet .chip[data-name="By the bed"]');
@@ -166,8 +166,8 @@ assert.equal(await room('Bedroom 1').locator('.trow', { hasText: 'Space heater' 
 await tab(page, 'loads');
 assert.match(await page.locator('.group-h.over').innerText(), /Likely to trip/);
 const trip = await page.locator('.card.load.over').innerText();
-assert.match(trip, /3,000 W/);
-assert.match(trip, /1,800 W/);
+assert.match(trip, /3,000\sW/);
+assert.match(trip, /1,800\sW/);
 assert.match(trip, /will likely trip/);
 assert.match(await text(page), /licensed electrician/);
 await fits(page, 'the load check');

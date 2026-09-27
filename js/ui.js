@@ -6,7 +6,7 @@ export const app = document.getElementById('app');
 
 export const esc = s => String(s ?? '').replace(/[&<>"']/g, ch => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
 export const plural = (n, one, many = one + 's') => `${n} ${n === 1 ? one : many}`;
-export const W = n => `${Math.round(n).toLocaleString('en-US')} W`;
+export const W = n => `${Math.round(n).toLocaleString('en-US')}\u00a0W`;
 
 export function go(path, replace = false) {
   const hash = '#' + path;
