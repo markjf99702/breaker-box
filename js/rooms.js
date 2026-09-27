@@ -126,7 +126,7 @@ export function thingSheet(house, t, after) {
     sheet(`
       <h2 class="sheet-h">${icon(t.kind, 'k')} ${esc(t.name)}</h2>
       <label class="field"><span>Name</span><input id="tName" maxlength="60" value="${esc(t.name)}" autocomplete="off"></label>
-      ${ideas.length ? `<div class="chips small">${ideas.map(n => `<button type="button" class="chip" data-name="${esc(n)}">${esc(n)}</button>`).join('')}</div>` : ''}
+      ${ideas.length ? `<div class="chips small">${ideas.map(n => `<button type="button" class="chip" data-place="${esc(n)}">${esc(n)}</button>`).join('')}</div>` : ''}
       <div class="field"><span>Kind</span>${choices('tkind', M.THING_KINDS, t.kind, v => KIND_LABEL[v])}</div>
       <label class="field"><span>Room</span><select id="tRoom">${house.rooms.map(r => `<option value="${r.id}" ${r.id === t.roomId ? 'selected' : ''}>${esc(r.name)}</option>`).join('')}</select></label>
       <div class="field two">
@@ -143,7 +143,7 @@ export function thingSheet(house, t, after) {
       </div>`, (body, close) => {
       const name = body.querySelector('#tName');
       name.addEventListener('input', () => { t.name = name.value.trim() || M.nextName(house, t.roomId, t.kind); save(); });
-      body.querySelectorAll('[data-name]').forEach(b => b.addEventListener('click', () => { name.value = b.dataset.name; t.name = b.dataset.name; save(); }));
+      body.querySelectorAll('[data-place]').forEach(b => b.addEventListener('click', () => { name.value = b.dataset.place; t.name = b.dataset.place; save(); }));
       bindChoices(body, 'tkind', v => { t.kind = v; save(); draw(); });
       body.querySelector('#tRoom').addEventListener('change', e => { t.roomId = e.target.value; save(); });
       body.querySelector('#tWatts').addEventListener('input', e => { const w = Number(e.target.value); t.watts = w > 0 ? Math.round(w) : null; save(); });

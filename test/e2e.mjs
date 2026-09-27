@@ -111,7 +111,8 @@ await page.waitForTimeout(100);
 assert.deepEqual(await room('Kitchen').locator('.tname').evaluateAll(els => els.map(e => e.textContent)), ['Outlet 1', 'Outlet 2', 'Fridge700\u00a0W', 'Microwave1,500\u00a0W']);
 // Name an outlet.
 await room('Bedroom 1').locator('.trow', { hasText: 'Outlet 1' }).click();
-await page.click('#sheet .chip[data-name="By the bed"]');
+await page.click('#sheet .chip[data-place="By the bed"]');
+await page.click('#sheet .seg[data-name="tkind"] button[data-v="outlet"]'); // choosing the kind leaves the name alone
 await closeSheet(page);
 assert.match(await room('Bedroom 1').innerText(), /By the bed/);
 await fits(page, 'the rooms');
