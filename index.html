@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Breaker Box</title>
+  <meta name="description" content="Map your breaker panel. Flip a breaker off, walk round the house and tap everything that went dead, and Breaker Box builds the map. It checks what's on each circuit against the breaker and prints a directory sized for the panel door.">
+  <meta property="og:title" content="Breaker Box">
+  <meta property="og:description" content="Map your breaker panel, one breaker at a time.">
+  <meta property="og:image" content="https://junkdrawer.works/breaker-box/og.png">
+  <meta property="og:url" content="https://junkdrawer.works/breaker-box/">
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="theme-color" content="#e6e4df" media="(prefers-color-scheme: light)">
+  <meta name="theme-color" content="#141517" media="(prefers-color-scheme: dark)">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icon-180.png">
+  <link rel="preload" href="fonts/archivo.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="fonts/patrick-hand.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="css/app.css">
+  <script type="module" src="js/app.js"></script>
+</head>
+<body>
+  <header class="bar">
+    <a class="brand" href="#/">
+      <img src="icon.svg" alt="" width="30" height="30">
+      <span>Breaker Box</span>
+    </a>
+    <span class="house-name" id="houseName"></span>
+    <nav class="tabs" id="tabs" aria-label="Screens" hidden></nav>
+    <div class="bar-actions">
+      <a class="icon-btn" id="searchLink" href="#/search" aria-label="Search" hidden></a>
+      <a class="icon-btn" id="moreLink" href="#/more" aria-label="More" hidden></a>
+    </div>
+  </header>
+
+  <main id="app" tabindex="-1"></main>
+
+  <noscript><p class="noscript">Breaker Box needs JavaScript to draw the panel and keep the map.</p></noscript>
+
+  <div class="toast" id="toast" role="status" aria-live="polite" hidden></div>
+
+  <dialog class="sheet" id="sheet">
+    <div class="sheet-body"></div>
+  </dialog>
+</body>
+</html>
