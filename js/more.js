@@ -83,7 +83,7 @@ export function moreScreen(house) {
     <section class="card about">
       <h2>About</h2>
       <p>Breaker Box helps you work out which breaker does what: flip one off, see what went dead, and keep the map. Flipping breakers is fine. Opening the panel cover or changing wiring is a job for a licensed electrician.</p>
-      <p>Part of <a href="https://junkdrawer.works/">junkdrawer.works</a>. No account, nothing sent anywhere.</p>
+      <p>No account, nothing sent anywhere.</p>
       ${house.sample ? '' : `<button type="button" class="link-btn danger" data-act="remove">Remove ${esc(house.name)} from this device</button>`}
     </section>`;
   on({
