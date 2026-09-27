@@ -237,6 +237,7 @@ test('flip a breaker off and tap what went dead', () => {
   const b = M.addThing(h, kitchen.id, { kind: 'outlet' });
   const fridge = appliance(h, kitchen.id, 'Fridge', { circuitId: at(h, 4).id });
   assert.deepEqual(M.progress(h), { circuits: 12, mapped: 1, tested: 0, things: 3, found: 1, unfound: 2 });
+  assert.equal(b.name, 'Outlet 2', 'new outlets are numbered in their room');
   assert.equal(M.nextToTest(h).space, 1);
 
   const c = at(h, 1);

@@ -84,7 +84,8 @@ assert.equal(await page.locator('.door .brk').count(), 19, 'the breaker in 7 mad
 assert.equal(await breaker(page, '5/7').count(), 1);
 await breaker(page, 3).click();
 await page.click('#sheet .seg[data-name="kind"] button[data-v="gfci"]');
-await closeSheet(page);
+await page.mouse.click(195, 12); // tapping outside the sheet closes it too
+await page.locator('#sheet').waitFor({ state: 'hidden' });
 assert.match(await breaker(page, 3).innerText(), /GFCI/);
 
 // ---------- The rooms and what's in them ----------
@@ -98,12 +99,16 @@ await room('Kitchen').locator('[data-quick$=":appliance"]').click();
 await page.click('#sheet [data-app="Fridge"]');
 await page.click('#sheet [data-app="Microwave"]');
 await page.click('#sheet .sheet-actions [data-close]');
+await page.locator('#sheet').waitFor({ state: 'hidden' });
+await page.waitForTimeout(100);
 await room('Bedroom 1').locator('[data-quick$=":light"]').click();
 await room('Bedroom 1').locator('[data-quick$=":outlet"]').click();
 await room('Bedroom 1').locator('[data-quick$=":appliance"]').click();
 await page.click('#sheet [data-app="Space heater"]');
 await page.click('#sheet .sheet-actions [data-close]');
-assert.deepEqual(await room('Kitchen').locator('.tname').allInnerTexts(), ['Outlet 1', 'Outlet 2', 'Fridge\n700\u00a0W', 'Microwave\n1,500\u00a0W']);
+await page.locator('#sheet').waitFor({ state: 'hidden' });
+await page.waitForTimeout(100);
+assert.deepEqual(await room('Kitchen').locator('.tname').evaluateAll(els => els.map(e => e.textContent)), ['Outlet 1', 'Outlet 2', 'Fridge700\u00a0W', 'Microwave1,500\u00a0W']);
 // Name an outlet.
 await room('Bedroom 1').locator('.trow', { hasText: 'Outlet 1' }).click();
 await page.click('#sheet .chip[data-name="By the bed"]');

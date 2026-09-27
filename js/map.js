@@ -14,11 +14,28 @@ const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
 const where = (house, c) => (house.panels.indexOf(M.panelOf(house, c)) > 0 ? `${M.panelOf(house, c).name.split(/\s+/)[0]} ` : '') + M.circuitName(c);
 const focus = yes => document.body.classList.toggle('focus', yes);
 
+// Keeps the screen on while you're mapping, where the browser allows it, so it doesn't lock between rooms.
+let lock = null, wantAwake = false;
+export async function keepAwake(on) {
+  wantAwake = on;
+  try {
+    if (on && !lock && navigator.wakeLock && document.visibilityState === 'visible') {
+      lock = await navigator.wakeLock.request('screen');
+      lock.addEventListener('release', () => { lock = null; });
+    } else if (!on && lock) {
+      await lock.release();
+      lock = null;
+    }
+  } catch { lock = null; /* not allowed here; the screen may lock on its own */ }
+}
+document.addEventListener('visibilitychange', () => { if (wantAwake && document.visibilityState === 'visible') keepAwake(true); });
+
 export function mapScreen(house) {
   const s = house.session;
-  if (s?.mode === 'flip' && M.findCircuit(house, s.circuit)) return flipScreen(house);
-  if (s?.mode === 'find' && M.findThing(house, s.thing)) return findScreen(house);
+  if (s?.mode === 'flip' && M.findCircuit(house, s.circuit)) { keepAwake(true); return flipScreen(house); }
+  if (s?.mode === 'find' && M.findThing(house, s.thing)) { keepAwake(true); return findScreen(house); }
   if (s) { house.session = null; store.put(house); }
+  keepAwake(false);
   focus(false);
   hub(house);
 }

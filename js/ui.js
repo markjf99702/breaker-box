@@ -42,9 +42,12 @@ export const KIND_LABEL = { outlet: 'Outlet', light: 'Light', switch: 'Switch', 
 export function badge(house, circuitId, extra = '') {
   const c = circuitId && M.findCircuit(house, circuitId);
   if (!c) return `<span class="bno none ${extra}" title="Not found yet">?</span>`;
+  return `<span class="bno ${extra}">${numHTML(house, c)}</span>`;
+}
+// A breaker's number, with its panel's first word in small type when it isn't in the main panel.
+export function numHTML(house, c) {
   const p = M.panelOf(house, c);
-  const sub = house.panels.length > 1 && p !== house.panels[0] ? `<small>${esc(shortPanel(p))}</small>` : '';
-  return `<span class="bno ${extra}">${sub}${M.circuitName(c)}</span>`;
+  return `${house.panels.length > 1 && p !== house.panels[0] ? `<small>${esc(shortPanel(p))}</small>` : ''}${M.circuitName(c)}`;
 }
 export const shortPanel = p => (p.name.split(/\s+/)[0] || 'Sub').slice(0, 8);
 
@@ -85,7 +88,9 @@ export function sheet(html, bind, closed) {
   body.querySelectorAll('[data-close]').forEach(b => b.addEventListener('click', close));
   bind?.(body, close);
 }
-export function closeSheet() {
+// Closes the sheet without running what it would do on closing, for when the page is moving elsewhere.
+export function dropSheet() {
+  onClose = null;
   const dlg = document.getElementById('sheet');
   if (dlg.open) { dlg.close?.(); dlg.removeAttribute('open'); }
 }
@@ -93,7 +98,7 @@ export function closeSheet() {
   const dlg = document.getElementById('sheet');
   dlg.addEventListener('close', () => { const f = onClose; onClose = null; f?.(); });
   // Tap outside the sheet to close it.
-  dlg.addEventListener('click', e => { if (e.target === dlg) closeSheet(); });
+  dlg.addEventListener('click', e => { if (e.target === dlg) { dlg.close?.(); dlg.removeAttribute('open'); } });
 }
 
 // Buttons in a row where one is chosen, like amps or kind.

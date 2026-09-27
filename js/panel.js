@@ -238,7 +238,7 @@ export function thingPicker(house, c, done) {
       <p class="hint">Tap everything this breaker powers. Things already on another breaker show its number.</p>
       ${rooms.length ? rooms.map(r => `
         <h3 class="room-h">${roomDot(r)}${esc(r.name)}</h3>
-        <div class="things">${M.thingsIn(house, r.id).map(t => thingTile(house, t, c.id)).join('')}</div>`).join('') : '<p>No rooms yet. Add rooms and what’s in them on the Rooms tab.</p>'}
+        <div class="things">${M.thingsIn(house, r.id).map(t => thingTile(house, t, c.id, true)).join('')}</div>`).join('') : '<p>No rooms yet. Add rooms and what’s in them on the Rooms tab.</p>'}
       <div class="sheet-actions"><button type="button" class="btn primary" data-close>Done</button></div>`, body => {
       body.addEventListener('click', e => {
         const b = e.target.closest('[data-t]');
@@ -246,7 +246,7 @@ export function thingPicker(house, c, done) {
         const t = M.findThing(house, b.dataset.t);
         t.circuitId = t.circuitId === c.id ? null : c.id;
         store.put(house);
-        b.outerHTML = thingTile(house, t, c.id);
+        b.outerHTML = thingTile(house, t, c.id, true);
       });
     }, done);
   };
@@ -254,10 +254,11 @@ export function thingPicker(house, c, done) {
 }
 
 // A thing as a big tap target. `on` is the breaker being worked on: things on it show as dead.
-export function thingTile(house, t, onId) {
+export function thingTile(house, t, onId, picking = false) {
   const here = t.circuitId === onId;
   const other = !here && t.circuitId && M.findCircuit(house, t.circuitId);
-  const state = here ? `Dead · on ${M.circuitName(M.findCircuit(house, onId))}` : other ? `On ${M.circuitName(other)}` : 'Not found yet';
+  const on = `on ${M.circuitName(M.findCircuit(house, onId))}`;
+  const state = here ? (picking ? `✓ ${on}` : `Dead · ${on}`) : other ? `On ${M.circuitName(other)}` : 'Not found yet';
   return `<button type="button" class="thing${here ? ' dead' : ''}${other ? ' elsewhere' : ''}" data-t="${t.id}" aria-pressed="${here}">
     ${icon(t.kind, 'k')}<span class="nm">${esc(t.name)}</span><span class="st">${esc(state)}</span></button>`;
 }

@@ -4,10 +4,10 @@ import * as M from './model.js';
 import { store } from './store.js';
 import { readView } from './share.js';
 import { sampleHouse } from './sample.js';
-import { app, esc, on, go, toast, sheet, icon, roomDot, badge, plural, W } from './ui.js';
+import { app, esc, on, go, toast, sheet, dropSheet, icon, roomDot, badge, plural, W } from './ui.js';
 import { panelScreen, setupScreen, panelDoor, breakerSheet } from './panel.js';
 import { roomsScreen } from './rooms.js';
-import { mapScreen } from './map.js';
+import { mapScreen, keepAwake } from './map.js';
 import { loadsScreen } from './loads.js';
 import { printScreen } from './print.js';
 import { moreScreen, searchScreen, openSample } from './more.js';
@@ -31,7 +31,8 @@ function route() {
   const [head, a] = path.split('/');
   if (path !== lastPath) { window.scrollTo(0, 0); lastPath = path; }
   document.body.classList.remove('focus', 'viewing');
-  document.querySelector('.sheet')?.open && document.querySelector('.sheet').close?.();
+  if (head !== 'map') keepAwake(false);
+  dropSheet();
 
   if (head === 'view' && a) return view(a);
   if (head === 'sample') { openSample(); return; }

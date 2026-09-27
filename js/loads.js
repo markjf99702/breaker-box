@@ -1,6 +1,6 @@
 // The load check: what's known to be on each breaker against what it carries.
 import * as M from './model.js';
-import { app, esc, on, W, plural } from './ui.js';
+import { app, esc, on, W, plural, numHTML } from './ui.js';
 import { breakerSheet } from './panel.js';
 
 const names = items => {
@@ -58,7 +58,7 @@ export function loadsScreen(house) {
   const card = l => {
     const c = l.circuit;
     return `<button type="button" class="card load ${l.status}" data-c="${c.id}">
-      <div class="load-top"><span class="bno big">${M.circuitName(c)}</span><span class="load-name"><b>${esc(M.labelOf(house, c) || 'Not mapped')}</b><small>${c.amps}\u00a0A · ${M.volts(c)}\u00a0V${house.panels.length > 1 ? ` · ${esc(M.panelOf(house, c).name)}` : ''}</small></span></div>
+      <div class="load-top"><span class="bno big">${numHTML(house, c)}</span><span class="load-name"><b>${esc(M.labelOf(house, c) || 'Not mapped')}</b><small>${c.amps}\u00a0A · ${M.volts(c)}\u00a0V${house.panels.length > 1 ? ` · ${esc(M.panelOf(house, c).name)}` : ''}</small></span></div>
       ${loadBar(l)}
       <p class="load-say">${loadLine(house, l)}</p>
     </button>`;
@@ -80,12 +80,12 @@ export function loadsScreen(house) {
       <div class="loads">${groups[k].map(card).join('')}</div>` : '').join('')}
     ${groups.ok.length ? `<h2 class="group-h">Fine <small>Under 80% of what the breaker carries.</small></h2>
       <ul class="fine-list">${groups.ok.map(l => `<li><button type="button" data-c="${l.circuit.id}">
-        <span class="bno">${M.circuitName(l.circuit)}</span>
+        <span class="bno">${numHTML(house, l.circuit)}</span>
         <span class="fl-name">${esc(M.labelOf(house, l.circuit) || 'Not mapped')}<small>${W(l.total)} of ${W(l.capacity)}</small></span>
         <span class="lbar ok"><i class="fill" style="width:${(Math.min(l.share, 1) * 100).toFixed(1)}%"></i><i class="eighty"></i></span>
       </button></li>`).join('')}</ul>` : ''}
     ${groups.unknown.length ? `<h2 class="group-h">No watts known</h2>
-      <p class="hint unknown-list">${groups.unknown.map(l => `<button type="button" class="bno" data-c="${l.circuit.id}" aria-label="Breaker ${M.circuitName(l.circuit)}">${M.circuitName(l.circuit)}</button>`).join(' ')}</p>
+      <p class="hint unknown-list">${groups.unknown.map(l => `<button type="button" class="bno" data-c="${l.circuit.id}" aria-label="Breaker ${M.circuitName(l.circuit)}${house.panels.length > 1 ? `, ${esc(M.panelOf(house, l.circuit).name)}` : ''}">${numHTML(house, l.circuit)}</button>`).join(' ')}</p>
       <p class="hint">Outlets and lights don’t count until you give them watts. ${plural(groups.unknown.length, 'breaker')} here.</p>` : ''}`;
   on({
     click(e) {

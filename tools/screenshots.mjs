@@ -130,7 +130,7 @@ const scrollTo = (page, sel, pad = 70) => page.evaluate(([s, p]) => window.scrol
       .ogcard { display: grid; grid-template-columns: 560px 1fr; align-items: center; height: 630px; padding: 0 60px 0 70px; gap: 40px; }
       .ogtext img { display: block; border-radius: 16px; }
       .ogtext h1 { font-size: 96px; font-stretch: 82%; letter-spacing: -.03em; margin: 24px 0 12px; white-space: nowrap; line-height: 1; }
-      .ogtext p { font-size: 32px; line-height: 1.25; color: var(--ink-2); margin: 0 0 26px; font-weight: 550; }
+      .ogtext p { font-size: 32px; line-height: 1.25; color: var(--ink-2); margin: 0 0 26px; font-weight: 550; text-wrap: balance; }
       .ogtext ul { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
       .ogtext li { font-size: 24px; font-weight: 650; color: var(--muted); display: flex; align-items: center; gap: 14px; }
       .ogtext li::before { content: ''; width: 18px; height: 12px; border-radius: 3px; background: #18191b; box-shadow: inset 0 0 0 2px #3b3e42; }
