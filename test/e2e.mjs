@@ -258,6 +258,16 @@ await them.page.click('[data-act="keep"]');
 await them.page.locator('.door').waitFor();
 assert.equal(await them.page.locator('.door .brk').count(), 19, 'kept on their phone');
 assert.match(await them.page.locator('#houseName').evaluate(el => el.textContent), /Elm Street/);
+// A copy last changed in an earlier year says which year.
+const oldLink = await page.evaluate(async () => {
+  const { viewLink } = await import('./js/share.js');
+  const h = window.breakerBox.sampleHouse();
+  h.updated = Date.UTC(2025, 1, 23, 12);
+  return viewLink(h, '');
+});
+await them.page.goto(oldLink);
+await them.page.locator('.view-door').first().waitFor();
+assert.match(await them.page.locator('.sample-banner').innerText(), /a read-only copy from \D*23\D*2025\D*\./);
 
 // ---------- Backup and restore ----------
 const [download] = await Promise.all([page.waitForEvent('download'), page.click('[data-act="save"]')]);

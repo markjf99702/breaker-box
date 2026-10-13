@@ -4,7 +4,7 @@ import * as M from './model.js';
 import { store } from './store.js';
 import { readView } from './share.js';
 import { sampleHouse } from './sample.js';
-import { app, esc, on, go, toast, sheet, dropSheet, icon, roomDot, badge, plural, W, mapBadge } from './ui.js';
+import { app, esc, on, go, toast, sheet, dropSheet, icon, roomDot, badge, plural, W, mapBadge, when } from './ui.js';
 import { panelScreen, setupScreen, panelDoor, breakerSheet } from './panel.js';
 import { roomsScreen } from './rooms.js';
 import { mapScreen, keepAwake } from './map.js';
@@ -150,7 +150,7 @@ async function view(data) {
   document.title = `${house.name} · Breaker Box`;
   app.innerHTML = `
     <aside class="sample-banner shared" role="note">
-      <p><b>${esc(from ? `${from}’s map of ${house.name}` : house.name)}</b>, a read-only copy from ${new Date(house.updated).toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}. Look up a breaker below.</p>
+      <p><b>${esc(from ? `${from}’s map of ${house.name}` : house.name)}</b>, a read-only copy from ${when(house.updated)}. Look up a breaker below.</p>
       <div class="row-btns"><button type="button" class="btn small primary" data-act="keep">Keep a copy on this device</button></div>
     </aside>
     <div id="viewSearch"></div>
