@@ -525,15 +525,17 @@ export function search(house, query) {
     && numbers.every(n => extra.includes(n) || hay.split(' ').includes(String(n)));
   const things = house.things.filter(t => {
     const c = t.circuitId && findCircuit(house, t.circuitId);
-    const hay = norm(`${roomOf(house, t)?.name} ${t.name} ${kindWord[t.kind]}`);
+    const hay = norm(`${roomOf(house, t)?.name} ${t.name} ${kindWord[t.kind]} ${c ? circuitName(c) : ''}`);
     return matches(hay, c ? spacesOf(c) : []);
   });
   // Things in a room that matches the whole search come first: "bedroom 2" before Bedroom 1's outlet 2.
   const inRoom = t => words.every(w => norm(roomOf(house, t)?.name).split(' ').some(h => h.startsWith(w)));
   things.sort((a, b) => inRoom(b) - inRoom(a));
+  // A breaker by its name, as the panel shows it ("28A", "5/7"), even with nothing known about it.
   const circuits = allCircuits(house).filter(c => {
-    const hay = norm(`breaker ${labelOf(house, c)} ${BREAKER_KINDS[c.kind]}`);
-    return matches(hay, spacesOf(c)) && (numbers.length || text.length) && (numbers.length || labelOf(house, c));
+    const name = norm(circuitName(c));
+    const hay = norm(`breaker ${name} ${labelOf(house, c)} ${BREAKER_KINDS[c.kind]}`);
+    return matches(hay, spacesOf(c)) && (numbers.length || text.length) && (numbers.length || labelOf(house, c) || text.some(w => name.startsWith(w)));
   });
   return { things, circuits };
 }

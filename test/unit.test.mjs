@@ -383,6 +383,11 @@ test('search finds things by room and name, and breakers by number', () => {
   assert.deepEqual(twelve.circuits.map(M.circuitName), ['12']);
   assert.equal(twelve.things.length, 3, 'everything on breaker 12');
   assert.ok(M.search(h, 'gfci').circuits.length >= 3);
+  assert.deepEqual(M.search(h, '28A').circuits.map(M.circuitName), ['28A'], 'half a tandem by its name, though nothing is on it');
+  const range = M.search(h, '5/7');
+  assert.deepEqual(range.circuits.map(M.circuitName), ['5/7'], 'a double-pole breaker by its name');
+  assert.deepEqual(range.things.map(t => t.name), ['Electric range']);
+  assert.deepEqual(M.search(h, 'breaker 28b').circuits.map(M.circuitName), ['28B']);
   assert.deepEqual(M.search(h, '   '), { things: [], circuits: [] });
   const bed = M.search(h, 'Béd 2').things;
   assert.deepEqual(bed.slice(0, 3).map(t => M.roomOf(h, t).name), ['Bedroom 2', 'Bedroom 2', 'Bedroom 2'], 'accents and case don’t matter, and the room comes first');
