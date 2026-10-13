@@ -72,9 +72,19 @@ for (const type of ['click', 'input', 'change', 'keydown', 'submit']) {
   app.addEventListener(type, e => handlers[type]?.(e));
 }
 
+// While a sheet is open the toast goes inside it: the sheet covers everything else on the page, toast included,
+// and a screen reader only reads what's in the sheet. It comes back out when the sheet closes.
+function placeToast() {
+  const el = document.getElementById('toast');
+  const dlg = document.getElementById('sheet');
+  const home = dlg.open ? dlg : document.body;
+  if (el.parentNode !== home) home.append(el);
+  return el;
+}
+
 let toastTimer;
 export function toast(message, action) {
-  const el = document.getElementById('toast');
+  const el = placeToast();
   el.innerHTML = `<span>${esc(message)}</span>${action ? `<button type="button">${esc(action.label)}</button>` : ''}`;
   el.hidden = false;
   if (action) el.querySelector('button').onclick = () => { el.hidden = true; action.run(); };
@@ -94,6 +104,7 @@ export function sheet(html, bind, closed) {
   onClose = closed || null;
   if (!dlg.open) {
     if (typeof dlg.showModal === 'function') dlg.showModal(); else dlg.setAttribute('open', '');
+    placeToast();
   }
   body.scrollTop = 0;
   const close = () => { if (dlg.open) { dlg.close?.(); dlg.removeAttribute('open'); } };
@@ -108,7 +119,7 @@ export function dropSheet() {
 }
 {
   const dlg = document.getElementById('sheet');
-  dlg.addEventListener('close', () => { const f = onClose; onClose = null; f?.(); });
+  dlg.addEventListener('close', () => { placeToast(); const f = onClose; onClose = null; f?.(); });
   // Tap outside the sheet to close it.
   dlg.addEventListener('click', e => { if (e.target === dlg) { dlg.close?.(); dlg.removeAttribute('open'); } });
 }

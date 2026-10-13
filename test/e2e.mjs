@@ -338,8 +338,15 @@ await tab(rp, 'panel');
 await rp.click('[data-act="settings"]');
 const fewer = async () => { await rp.click('#sheet [data-step="-2"]'); return rp.locator('#pSpaces').innerText(); };
 const toastText = () => rp.locator('#toast').innerText();
+// What's on top in the middle of the toast: the toast itself, not the sheet it was shown over.
+const toastSeen = () => rp.evaluate(() => {
+  const t = document.getElementById('toast');
+  const r = t.getBoundingClientRect();
+  return !t.hidden && t.contains(document.elementFromPoint(r.left + r.width / 2, r.top + r.height / 2));
+});
 assert.equal(await fewer(), '32');
 assert.match(await toastText(), /^That would drop breaker 29\/31, which feeds Garage subpanel\. Tap again/);
+assert.ok(await toastSeen(), 'the warning shows over the sheet, not behind it');
 assert.equal(await fewer(), '30');
 assert.equal(await fewer(), '30');
 assert.match(await toastText(), /^That would drop breaker 30 and what’s known about it\./);
@@ -363,6 +370,7 @@ await closeSheet(rp);
 await breaker(rp, '1A').click();
 await rp.click('#sheet .seg[data-name="poles"] button[data-v="double"]');
 assert.match(await toastText(), /^Breaker 3 has things on it\./);
+assert.ok(await toastSeen(), 'and so does the reason');
 assert.match(await rp.locator('#sheet .sheet-h').innerText(), /^Breaker 1A/);
 await closeSheet(rp);
 assert.match(await breaker(rp, '1B').innerText(), /Shed/, 'still two in one space, with its label');
