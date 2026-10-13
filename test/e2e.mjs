@@ -28,8 +28,8 @@ const base = `http://localhost:${server.address().port}/`;
 const browser = await pw.chromium.launch();
 const problems = [];
 
-async function device() {
-  const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, hasTouch: true });
+async function device(extra = {}) {
+  const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2, hasTouch: true, ...extra });
   await ctx.grantPermissions(['clipboard-read', 'clipboard-write']);
   const page = await ctx.newPage();
   page.on('pageerror', e => problems.push(e.message));
@@ -379,6 +379,28 @@ assert.deepEqual(feederLines, [
   'Things that run for hours, on it and on Shop subpanel, come to 10,500 W. The usual guideline keeps that under 80% of the breaker, 9,600 W here. That includes 4,500 W on Shop subpanel.',
   'Hot tub runs for hours at a time, 6,000 W. The usual guideline keeps that under 80% of the breaker, 5,760 W here.',
 ]);
+
+// ---------- Jumping to a room while a breaker is off ----------
+// The room's heading lands just below the header that sticks at the top, and with reduced motion it jumps straight there.
+const still = await device({ reducedMotion: 'reduce' });
+const sw = still.page;
+await sw.goto(base + '#/sample');
+await sw.locator('.door').waitFor();
+await tab(sw, 'map');
+await sw.click('.flip-card [data-flip]');
+await sw.click('text=It’s off');
+const jump = await sw.evaluate(async () => {
+  const chip = [...document.querySelectorAll('.jump a')].find(a => a.textContent.trim() === 'Office');
+  chip.click();
+  const right = scrollY;
+  await new Promise(r => setTimeout(r, 800));
+  const summary = document.querySelector(`${chip.getAttribute('href')} summary`).getBoundingClientRect();
+  return { right, after: scrollY, head: document.querySelector('.walk-head').getBoundingClientRect().bottom, room: summary.top };
+});
+assert.equal(jump.right, jump.after, 'straight there, without scrolling smoothly');
+assert.ok(jump.room >= jump.head && jump.room < jump.head + 20, `the Office heading is just below the header: ${JSON.stringify(jump)}`);
+await sw.click('.walk-head [data-act="stop"]');
+await still.ctx.close();
 
 // ---------- Printing a subpanel added later ----------
 // Print remembers the card size, but every panel is ticked each visit, including one added since the last.

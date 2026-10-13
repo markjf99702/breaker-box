@@ -232,8 +232,11 @@ function walkScreen(house, c) {
         e.preventDefault();
         const sec = document.getElementById(`w-${jump.dataset.jump}`);
         sec.querySelector('details').open = true;
-        const head = app.querySelector('.walk-head').getBoundingClientRect().height;
-        window.scrollTo({ top: sec.getBoundingClientRect().top + scrollY - head - 8, behavior: 'smooth' });
+        // Just below the header, which sticks under the top bar; straight there when the phone asks for less motion.
+        const head = app.querySelector('.walk-head');
+        const cover = (parseFloat(getComputedStyle(head).top) || 0) + head.getBoundingClientRect().height;
+        const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
+        window.scrollTo({ top: sec.getBoundingClientRect().top + scrollY - cover - 8, behavior: still ? 'auto' : 'smooth' });
         return;
       }
       const b = e.target.closest('button');
