@@ -384,6 +384,14 @@ await rp.locator('#sheet .thing', { hasText: 'Floodlight' }).click();
 assert.equal(await tileState('Floodlight'), '✓ on Garage 5');
 await rp.click('#sheet .sheet-actions [data-close]');
 await closeSheet(rp);
+// In words there's room for a long first word, which a badge cuts to eight letters.
+assert.equal(await rp.evaluate(async () => {
+  const { numText } = await import('./js/ui.js');
+  const { M } = window.breakerBox;
+  const h = M.blankHouse('Two panels');
+  M.addPanel(h, { spaces: 4 });
+  return numText(h, M.addPanel(h, { name: 'Downstairs apartment', spaces: 4 }).circuits[2]);
+}), 'Downstairs 3');
 
 // What a breaker feeding a subpanel says when the things that run for hours are on the subpanel, on both, or only on it.
 const feederLines = await rp.evaluate(async () => {

@@ -50,10 +50,11 @@ export function numHTML(house, c) {
   return `${house.panels.length > 1 && p !== house.panels[0] ? `<small>${esc(shortPanel(p))}</small>` : ''}${M.circuitName(c)}`;
 }
 export const shortPanel = p => (p.name.split(/\s+/)[0] || 'Sub').slice(0, 8);
-// The same in plain text, for sentences and tiles: "Garage 5".
+// The same in plain text, for sentences and tiles: "Garage 5". There's room for the panel's whole first word here,
+// so "Downstairs 3" isn't cut to "Downstai 3" the way it is on a badge.
 export function numText(house, c) {
   const p = M.panelOf(house, c);
-  return `${house.panels.length > 1 && p !== house.panels[0] ? `${shortPanel(p)} ` : ''}${M.circuitName(c)}`;
+  return `${house.panels.length > 1 && p !== house.panels[0] ? `${p.name.trim().split(/\s+/)[0] || 'Sub'} ` : ''}${M.circuitName(c)}`;
 }
 
 // The number of breakers still to map, on the Map it tab.
