@@ -226,7 +226,7 @@ export function breakerSheet(house, c, after) {
         M.removeCircuit(house, c);
         save();
         close();
-        toast(`Removed breaker ${M.circuitName(c)}${n ? `. ${plural(n, 'thing')} on it are unmapped again` : ''}.`);
+        toast(`Removed breaker ${M.circuitName(c)}${n ? `. ${plural(n, 'thing')} on it ${n === 1 ? 'is' : 'are'} unmapped again` : ''}.`);
       });
     });
   };

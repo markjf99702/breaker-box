@@ -307,6 +307,7 @@ assert.match(await rp.locator('.say').innerText(), /Dehumidifier is on breaker 2
 await tab(rp, 'panel');
 await breaker(rp, 23).click();
 await rp.click('#bRemove');
+assert.equal(await rp.locator('#toast').innerText(), 'Removed breaker 23. 1 thing on it is unmapped again.');
 await tab(rp, 'map');
 assert.match(await rp.locator('.try-card .say').innerText(), /^Flip breaker \S+ off\.$/, 'trying the next breaker');
 await rp.reload();
