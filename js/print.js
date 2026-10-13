@@ -62,7 +62,7 @@ export function cardHTML(house, panel, size) {
 
 export function listHTML(house) {
   const rooms = house.rooms.filter(r => M.thingsIn(house, r.id).length);
-  const panelMark = c => (house.panels.length > 1 && M.panelOf(house, c) !== house.panels[0] ? `${M.panelOf(house, c).name.split(/\s+/)[0]} ` : '');
+  const panelMark = c => (house.panels.length > 1 && M.panelOf(house, c) !== house.panels[0] ? `${esc(M.panelOf(house, c).name.split(/\s+/)[0])} ` : '');
   return `
     <div class="plist">
       <header class="plhead"><b>${esc(house.name)}: room by room</b><span>Which breaker each thing is on</span></header>

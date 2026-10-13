@@ -360,7 +360,7 @@ function findScreen(house) {
               <button type="button" class="btn big" data-still="${c.id}">Still on</button>
             </div>
           </div>
-          <p class="hint">${tried.length ? `Tried ${tried.map(x => numText(house, x)).join(', ')}. ` : ''}${rest.length ? `After this: ${rest.slice(0, 6).map(x => numText(house, x)).join(', ')}${rest.length > 6 ? '…' : ''}` : 'This is the last one to try.'}</p>`
+          <p class="hint">${tried.length ? `Tried ${tried.map(x => esc(numText(house, x))).join(', ')}. ` : ''}${rest.length ? `After this: ${rest.slice(0, 6).map(x => esc(numText(house, x))).join(', ')}${rest.length > 6 ? '…' : ''}` : 'This is the last one to try.'}</p>`
         : `<div class="card empty"><p>That was every breaker. If it never went off, check the lamp in another outlet, and look for a GFCI outlet nearby with a tripped Reset button: outlets downstream of one go dead when it trips.</p>
             <button type="button" class="btn" data-act="restart">Try them all again</button></div>`}
         <div class="row-btns"><button type="button" class="btn" data-act="pick">It was another breaker</button><button type="button" class="btn" data-act="stop">Stop</button></div>

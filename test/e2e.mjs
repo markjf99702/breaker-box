@@ -487,6 +487,33 @@ for (const saved of ['{"size":"A4","panels":"all"}', '{"size":null,"card":"yes"}
 }
 await odd.ctx.close();
 
+// ---------- A subpanel named like a piece of a web page ----------
+// A house can come from someone else's link, so its names show as written and never run: here on the find screen's
+// lists of breakers, and on the room-by-room list that prints.
+const named = await device();
+const np = named.page;
+const markup = '<img/src/onerror=window.ran=1>';
+await np.goto(base);
+await np.waitForFunction(() => window.breakerBox);
+await np.evaluate(name => {
+  const { M, store } = window.breakerBox;
+  const h = M.blankHouse('Maple Street');
+  M.addPanel(h, { spaces: 2 });
+  const shed = M.addPanel(h, { name, spaces: 4 });
+  M.addThing(h, M.addRoom(h, 'Kitchen').id, { kind: 'outlet', name: 'Counter' });
+  M.addThing(h, M.addRoom(h, 'Shed').id, { kind: 'light', name: 'Shed light', circuitId: shed.circuits[2].id });
+  store.put(h);
+  store.use(h.id);
+}, markup);
+await np.goto(base + '#/map');
+await np.click('.pick-list button:has-text("Counter")');
+await np.click('[data-still]');
+assert.equal(await np.locator('.try-card + .hint').innerText(), `Tried 1. After this: ${markup} 1, ${markup} 2, ${markup} 3, ${markup} 4`);
+await np.goto(base + '#/print');
+assert.equal(await np.locator('.plist li', { hasText: 'Shed light' }).locator('b').innerText(), `${markup} 3`);
+assert.equal(await np.evaluate(() => window.ran), undefined, 'nothing in a name runs');
+await named.ctx.close();
+
 // Survives a reload, a flip test survives a reload part way, and it works offline once it has been opened.
 await tab(page, 'map');
 await page.click('text=Start with breaker 3');
