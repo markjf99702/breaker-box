@@ -110,6 +110,20 @@ test('a tandem is two circuits in one space', () => {
   assert.equal(M.circuitName(c), '6/8');
 });
 
+test('whether a tandem can be made double-pole depends on the space below it', () => {
+  const h = house(12);
+  const porch = M.addRoom(h, 'Porch');
+  const { partner } = M.setTandem(h, at(h, 3), true);
+  const lamp = M.addThing(h, porch.id, { kind: 'light', circuitId: at(h, 5).id });
+  assert.match(M.doubleProblem(h, at(h, 3, 'A')), /^Breaker 5 has things on it/);
+  lamp.circuitId = partner.id;
+  assert.equal(M.doubleProblem(h, at(h, 3, 'A')), '', 'its own B half doesn’t count: the breaker sheet folds it in');
+  assert.equal(M.doubleProblem(h, at(h, 11)), 'There’s no space below 11 for the second pole.');
+  const d = at(h, 7);
+  M.setPoles(h, d, 2);
+  assert.equal(M.doubleProblem(h, d), '', 'one that is double-pole already');
+});
+
 test('removing a breaker or shrinking the panel leaves its things unmapped', () => {
   const h = house(20);
   const room = M.addRoom(h, 'Kitchen');

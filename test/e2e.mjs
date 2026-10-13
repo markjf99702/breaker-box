@@ -326,6 +326,22 @@ assert.equal(await fewer(), '26', 'asks again for the next one');
 assert.match(await toastText(), /breaker 26 /);
 await closeSheet(rp);
 
+// A tandem that can't be made double-pole stays a tandem: the garage's 1, with the freezer on 3 below it.
+await rp.click('.ptabs a:has-text("Garage subpanel")');
+await rp.locator('.plate', { hasText: 'Garage subpanel' }).waitFor();
+await breaker(rp, 1).click();
+await rp.click('#sheet .seg[data-name="poles"] button[data-v="tandem"]');
+await closeSheet(rp);
+await breaker(rp, '1B').click();
+await rp.fill('#bLabel', 'Shed');
+await closeSheet(rp);
+await breaker(rp, '1A').click();
+await rp.click('#sheet .seg[data-name="poles"] button[data-v="double"]');
+assert.match(await toastText(), /^Breaker 3 has things on it\./);
+assert.match(await rp.locator('#sheet .sheet-h').innerText(), /^Breaker 1A/);
+await closeSheet(rp);
+assert.match(await breaker(rp, '1B').innerText(), /Shed/, 'still two in one space, with its label');
+
 // Survives a reload, a flip test survives a reload part way, and it works offline once it has been opened.
 await tab(page, 'map');
 await page.click('text=Start with breaker 3');

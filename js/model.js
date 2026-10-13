@@ -184,16 +184,27 @@ export function setPoles(house, c, poles) {
     c.poles = 1;
     return { ok: true, removed: [] };
   }
-  const below = c.space + 2;
-  if (below > panel.spaces) return { ok: false, error: `There’s no space below ${c.space} for the second pole.`, removed: [] };
+  const problem = doubleProblem(house, c);
+  if (problem) return { ok: false, error: problem, removed: [] };
   const partner = c.half ? panel.circuits.find(x => x !== c && x.space === c.space && x.half) : null;
-  const inTheWay = [...new Set([...(occupancy(panel).get(below) || []), ...(partner ? [partner] : [])])];
-  const busy = inTheWay.find(x => thingsOn(house, x.id).length || feedsPanel(house, x));
-  if (busy) return { ok: false, error: `Breaker ${circuitName(busy)} has things on it. Move them, or remove that breaker first.`, removed: [] };
+  if (partner && busy(house, partner)) return { ok: false, error: busyText(partner), removed: [] };
+  const inTheWay = [...new Set([...(occupancy(panel).get(c.space + 2) || []), ...(partner ? [partner] : [])])];
   inTheWay.forEach(x => removeCircuit(house, x));
   c.half = null;
   c.poles = 2;
   return { ok: true, removed: inTheWay };
+}
+
+const busy = (house, c) => thingsOn(house, c.id).length || feedsPanel(house, c);
+const busyText = c => `Breaker ${circuitName(c)} has things on it. Move them, or remove that breaker first.`;
+
+// Why a breaker can't be made double-pole, or '' if it can: it needs the space below, with nothing mapped there.
+// A tandem's other half doesn't count; the breaker sheet folds it in first, once it knows the change will go through.
+export function doubleProblem(house, c) {
+  const panel = panelOf(house, c);
+  if (c.space + 2 > panel.spaces) return `There’s no space below ${c.space} for the second pole.`;
+  const there = (occupancy(panel).get(c.space + 2) || []).find(x => x !== c && busy(house, x));
+  return there ? busyText(there) : '';
 }
 
 // Tandem: two circuits in one space. Turning it on adds a B half; turning it off moves B's things onto A.

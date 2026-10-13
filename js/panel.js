@@ -190,7 +190,10 @@ export function breakerSheet(house, c, after) {
       bindChoices(body, 'amps', v => { c.amps = Number(v); save(); draw(); });
       bindChoices(body, 'kind', v => { c.kind = v; save(); });
       bindChoices(body, 'poles', v => {
-        if (v === 'tandem') {
+        const refused = v === 'double' && M.doubleProblem(house, c);
+        if (refused) {
+          toast(refused); // and a tandem stays one
+        } else if (v === 'tandem') {
           M.setTandem(house, c, true);
           toast(`Space ${c.space} now holds ${c.space}A and ${c.space}B.`);
         } else {
