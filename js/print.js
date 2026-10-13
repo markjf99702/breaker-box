@@ -10,10 +10,13 @@ export const SIZES = {
   page: { w: 7.2, h: 9.4, label: 'Full page' },
 };
 
-// What's on the screen between visits.
-const opts = { size: '5x8', card: true, list: true, panels: null };
+// What's on the screen between visits: the card size and what to print.
+const opts = { size: '5x8', card: true, list: true };
 try { Object.assign(opts, JSON.parse(localStorage.getItem('breaker-box-print')) || {}); } catch { /* defaults */ }
+delete opts.panels; // which panels used to be kept too, and left out any added since
 const remember = () => { try { localStorage.setItem('breaker-box-print', JSON.stringify(opts)); } catch { /* fine */ } };
+// The panels to print: every one at the start of each visit.
+let panels = [];
 
 const month = t => new Date(t).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
 
@@ -88,9 +91,9 @@ export function fitCards(root) {
 }
 
 export function printScreen(house) {
-  if (!opts.panels || !opts.panels.every(i => house.panels[i])) opts.panels = house.panels.map((_, i) => i);
+  panels = house.panels.map((_, i) => i);
   const draw = () => {
-    const panels = house.panels.filter((_, i) => opts.panels.includes(i));
+    const chosen = house.panels.filter((_, i) => panels.includes(i));
     const p = M.progress(house);
     app.innerHTML = `
       <div class="shead no-print"><p class="eyebrow">${esc(house.name)}</p><h1>Print</h1></div>
@@ -99,14 +102,14 @@ export function printScreen(house) {
           <label class="check"><input type="checkbox" id="pCard" ${opts.card ? 'checked' : ''}><span>Panel directory<small>A card for the inside of the panel door: numbers down both sides, a short label for each breaker.</small></span></label>
           <label class="check"><input type="checkbox" id="pList" ${opts.list ? 'checked' : ''}><span>Room by room<small>Every room, everything in it and its breaker, on a page of its own.</small></span></label>
         </div>
-        ${house.panels.length > 1 ? `<div class="field"><span>Panels</span>${house.panels.map((x, i) => `<label class="check"><input type="checkbox" data-panel="${i}" ${opts.panels.includes(i) ? 'checked' : ''}><span>${esc(x.name)}</span></label>`).join('')}</div>` : ''}
+        ${house.panels.length > 1 ? `<div class="field"><span>Panels</span>${house.panels.map((x, i) => `<label class="check"><input type="checkbox" data-panel="${i}" ${panels.includes(i) ? 'checked' : ''}><span>${esc(x.name)}</span></label>`).join('')}</div>` : ''}
         <div class="field"><span>Card size</span><div class="seg" data-name="size">${Object.entries(SIZES).map(([k, s]) => `<button type="button" role="radio" data-v="${k}" aria-checked="${k === opts.size}">${s.label}</button>`).join('')}</div>
           <small class="hint">Measure the space for the directory inside the panel door. It prints on ordinary paper, with a dashed line to cut along; tape or slide it into the door.</small></div>
         ${p.circuits && p.mapped < p.circuits ? `<p class="hint warn">${plural(p.circuits - p.mapped, 'breaker')} ${p.circuits - p.mapped === 1 ? 'isn’t' : 'aren’t'} mapped yet and will print blank, ready to write in by hand.</p>` : ''}
         <button type="button" class="btn primary wide" id="doPrint">${icon('print')}Print</button>
       </div>
       <div id="printArea" class="print-area">
-        ${opts.card ? panels.map(x => `<div class="sheetpage card-page">${cardHTML(house, x, opts.size)}</div>`).join('') : ''}
+        ${opts.card ? chosen.map(x => `<div class="sheetpage card-page">${cardHTML(house, x, opts.size)}</div>`).join('') : ''}
         ${opts.list && house.rooms.length ? `<div class="sheetpage list-page">${listHTML(house)}</div>` : ''}
         ${!opts.card && !opts.list ? '<p class="hint no-print">Pick something to print.</p>' : ''}
       </div>`;
@@ -126,7 +129,7 @@ export function printScreen(house) {
       if (e.target.id === 'pList') opts.list = e.target.checked;
       if (e.target.dataset.panel) {
         const i = Number(e.target.dataset.panel);
-        opts.panels = e.target.checked ? [...new Set([...opts.panels, i])].sort() : opts.panels.filter(x => x !== i);
+        panels = e.target.checked ? [...panels, i] : panels.filter(x => x !== i);
       }
       remember();
       draw();

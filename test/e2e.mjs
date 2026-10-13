@@ -342,6 +342,29 @@ assert.match(await rp.locator('#sheet .sheet-h').innerText(), /^Breaker 1A/);
 await closeSheet(rp);
 assert.match(await breaker(rp, '1B').innerText(), /Shed/, 'still two in one space, with its label');
 
+// ---------- Printing a subpanel added later ----------
+// Print remembers the card size, but every panel is ticked each visit, including one added since the last.
+const sub = await device();
+const sp = sub.page;
+await sp.goto(base);
+await sp.click('text=Set up my panel');
+await sp.click('text=Make the panel');
+await sp.locator('.door').waitFor();
+await tab(sp, 'print');
+await sp.click('.seg[data-name="size"] button[data-v="4x6"]');
+await tab(sp, 'panel');
+await sp.click('.ptabs a.add');
+await sp.click('text=Add the subpanel');
+await sp.locator('.plate', { hasText: 'Subpanel' }).waitFor();
+await tab(sp, 'print');
+assert.equal(await sp.locator('.pcard').count(), 2, 'the new subpanel prints too');
+assert.deepEqual(await sp.locator('[data-panel]').evaluateAll(els => els.map(e => e.checked)), [true, true]);
+await sp.reload();
+await sp.locator('.pcard').first().waitFor();
+assert.equal(await sp.locator('.pcard').count(), 2, 'after a reload too');
+assert.equal(await sp.locator('.pcard').first().evaluate(el => el.style.width), '4in', 'the card size is remembered');
+await sub.ctx.close();
+
 // Survives a reload, a flip test survives a reload part way, and it works offline once it has been opened.
 await tab(page, 'map');
 await page.click('text=Start with breaker 3');
