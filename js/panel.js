@@ -2,7 +2,7 @@
 // and setting up a panel (spaces, main breaker) or a subpanel.
 import * as M from './model.js';
 import { store } from './store.js';
-import { app, esc, on, go, toast, sheet, choices, bindChoices, icon, roomDot, plural, W } from './ui.js';
+import { app, esc, on, go, toast, sheet, choices, bindChoices, icon, roomDot, plural, W, numText } from './ui.js';
 import { loadLine, loadBar } from './loads.js';
 
 const TYPE_TAG = { gfci: 'GFCI', afci: 'AFCI', dual: 'AFCI/GFCI' };
@@ -260,8 +260,8 @@ export function thingPicker(house, c, done) {
 export function thingTile(house, t, onId, picking = false) {
   const here = t.circuitId === onId;
   const other = !here && t.circuitId && M.findCircuit(house, t.circuitId);
-  const on = `on ${M.circuitName(M.findCircuit(house, onId))}`;
-  const state = here ? (picking ? `✓ ${on}` : `Dead · ${on}`) : other ? `On ${M.circuitName(other)}` : 'Not found yet';
+  const on = `on ${numText(house, M.findCircuit(house, onId))}`;
+  const state = here ? (picking ? `✓ ${on}` : `Dead · ${on}`) : other ? `On ${numText(house, other)}` : 'Not found yet';
   return `<button type="button" class="thing${here ? ' dead' : ''}${other ? ' elsewhere' : ''}" data-t="${t.id}" aria-pressed="${here}">
     ${icon(t.kind, 'k')}<span class="nm">${esc(t.name)}</span><span class="st">${esc(state)}</span></button>`;
 }

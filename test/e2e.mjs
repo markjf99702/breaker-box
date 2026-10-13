@@ -342,6 +342,16 @@ assert.match(await rp.locator('#sheet .sheet-h').innerText(), /^Breaker 1A/);
 await closeSheet(rp);
 assert.match(await breaker(rp, '1B').innerText(), /Shed/, 'still two in one space, with its label');
 
+// Things on a subpanel's breakers say which panel, so the garage's 3 doesn't read as the main panel's 3.
+await breaker(rp, 5).click();
+await rp.click('#bAdd');
+const tileState = name => rp.locator('#sheet .thing', { hasText: name }).locator('.st').textContent();
+assert.equal(await tileState('Freezer'), 'On Garage 3');
+await rp.locator('#sheet .thing', { hasText: 'Floodlight' }).click();
+assert.equal(await tileState('Floodlight'), '✓ on Garage 5');
+await rp.click('#sheet .sheet-actions [data-close]');
+await closeSheet(rp);
+
 // ---------- Printing a subpanel added later ----------
 // Print remembers the card size, but every panel is ticked each visit, including one added since the last.
 const sub = await device();

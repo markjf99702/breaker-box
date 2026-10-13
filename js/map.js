@@ -4,14 +4,12 @@
 import * as M from './model.js';
 import { ROOM_IDEAS } from './catalog.js';
 import { store } from './store.js';
-import { app, esc, on, toast, sheet, icon, roomDot, plural, KIND_LABEL } from './ui.js';
+import { app, esc, on, toast, sheet, icon, roomDot, plural, KIND_LABEL, numText } from './ui.js';
 import { panelDoor, locator, thingTile, progressCard } from './panel.js';
 import { applianceSheet } from './rooms.js';
 import { loadLine } from './loads.js';
 
 const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
-// A breaker's number, with its panel's first word when it isn't in the main panel: "Garage 5".
-const where = (house, c) => (house.panels.indexOf(M.panelOf(house, c)) > 0 ? `${M.panelOf(house, c).name.split(/\s+/)[0]} ` : '') + M.circuitName(c);
 const focus = yes => document.body.classList.toggle('focus', yes);
 
 // Keeps the screen on while you're mapping, where the browser allows it, so it doesn't lock between rooms.
@@ -359,7 +357,7 @@ function findScreen(house) {
               <button type="button" class="btn big" data-still="${c.id}">Still on</button>
             </div>
           </div>
-          <p class="hint">${tried.length ? `Tried ${tried.map(x => where(house, x)).join(', ')}. ` : ''}${rest.length ? `After this: ${rest.slice(0, 6).map(x => where(house, x)).join(', ')}${rest.length > 6 ? '…' : ''}` : 'This is the last one to try.'}</p>`
+          <p class="hint">${tried.length ? `Tried ${tried.map(x => numText(house, x)).join(', ')}. ` : ''}${rest.length ? `After this: ${rest.slice(0, 6).map(x => numText(house, x)).join(', ')}${rest.length > 6 ? '…' : ''}` : 'This is the last one to try.'}</p>`
         : `<div class="card empty"><p>That was every breaker. If it never went off, check the lamp in another outlet, and look for a GFCI outlet nearby with a tripped Reset button: outlets downstream of one go dead when it trips.</p>
             <button type="button" class="btn" data-act="restart">Try them all again</button></div>`}
         <div class="row-btns"><button type="button" class="btn" data-act="pick">It was another breaker</button><button type="button" class="btn" data-act="stop">Stop</button></div>

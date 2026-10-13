@@ -50,6 +50,11 @@ export function numHTML(house, c) {
   return `${house.panels.length > 1 && p !== house.panels[0] ? `<small>${esc(shortPanel(p))}</small>` : ''}${M.circuitName(c)}`;
 }
 export const shortPanel = p => (p.name.split(/\s+/)[0] || 'Sub').slice(0, 8);
+// The same in plain text, for sentences and tiles: "Garage 5".
+export function numText(house, c) {
+  const p = M.panelOf(house, c);
+  return `${house.panels.length > 1 && p !== house.panels[0] ? `${shortPanel(p)} ` : ''}${M.circuitName(c)}`;
+}
 
 export const roomDot = room => `<i class="rdot" style="--rc:var(--r${room?.color ?? 0})" aria-hidden="true"></i>`;
 
