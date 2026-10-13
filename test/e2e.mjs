@@ -307,6 +307,25 @@ await tab(rp, 'map');
 assert.match(await rp.locator('.try-card .say').innerText(), /^Flip breaker \S+ off\.$/);
 await rp.click('[data-act="stop"]');
 
+// Making the panel smaller asks before dropping anything known about, each time: first the garage's feeder,
+// which has nothing of its own on it, then each mapped breaker in turn.
+await tab(rp, 'panel');
+await rp.click('[data-act="settings"]');
+const fewer = async () => { await rp.click('#sheet [data-step="-2"]'); return rp.locator('#pSpaces').innerText(); };
+const toastText = () => rp.locator('#toast').innerText();
+assert.equal(await fewer(), '32');
+assert.match(await toastText(), /^That would drop breaker 29\/31, which feeds Garage subpanel\. Tap again/);
+assert.equal(await fewer(), '30');
+assert.equal(await fewer(), '30');
+assert.match(await toastText(), /^That would drop breaker 30 and what’s known about it\./);
+assert.equal(await fewer(), '28');
+assert.equal(await fewer(), '28');
+assert.match(await toastText(), /breaker 25\/27/);
+assert.equal(await fewer(), '26');
+assert.equal(await fewer(), '26', 'asks again for the next one');
+assert.match(await toastText(), /breaker 26 /);
+await closeSheet(rp);
+
 // Survives a reload, a flip test survives a reload part way, and it works offline once it has been opened.
 await tab(page, 'map');
 await page.click('text=Start with breaker 3');

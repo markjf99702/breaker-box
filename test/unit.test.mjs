@@ -125,6 +125,22 @@ test('removing a breaker or shrinking the panel leaves its things unmapped', () 
   assert.equal(h.panels[0].spaces, 16);
 });
 
+test('shrinking a panel asks first about breakers that something is known about', () => {
+  const h = sampleHouse();
+  const main = h.panels[0];
+  const asks = spaces => M.atRisk(h, main, spaces).map(M.circuitName);
+  assert.deepEqual(asks(30), ['29/31'], 'the feeder for the garage, with nothing of its own on it; not the unmapped 32');
+  M.resizePanel(h, main, 30);
+  assert.deepEqual(asks(28), ['30'], 'the breaker marked Spare');
+  M.resizePanel(h, main, 28);
+  assert.deepEqual(asks(26), ['25/27'], 'the central AC, and not the empty tandem in 28');
+  M.resizePanel(h, main, 26);
+  assert.deepEqual(asks(24), ['26']);
+  main.circuits.find(c => c.space === 23).label = 'Doorbell transformer';
+  assert.deepEqual(asks(22), ['23', '24', '26'], 'a label of your own counts too');
+  assert.deepEqual(asks(26), []);
+});
+
 test('the load check: volts × amps, and the 80% guideline for things that run for hours', () => {
   const h = house(20);
   const room = M.addRoom(h, 'Office');

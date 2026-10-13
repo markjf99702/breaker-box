@@ -63,10 +63,16 @@ export function addPanel(house, { name, spaces = 40, mainAmps = 200, where = '',
 // Changing the number of spaces drops breakers that no longer fit; things on them become unmapped.
 export function resizePanel(house, panel, spaces) {
   panel.spaces = evenSpaces(spaces);
-  const gone = panel.circuits.filter(c => spacesOf(c).some(s => s > panel.spaces));
+  const gone = outside(panel, panel.spaces);
   gone.forEach(c => removeCircuit(house, c));
   return gone;
 }
+
+const outside = (panel, spaces) => panel.circuits.filter(c => spacesOf(c).some(s => s > spaces));
+
+// What a panel cut to that many spaces would lose that something is known about: breakers with things on them,
+// feeding a subpanel, flip-tested, or with a label of your own. Making the panel smaller asks first.
+export const atRisk = (house, panel, spaces) => outside(panel, evenSpaces(spaces)).filter(c => isMapped(house, c) || c.label.trim());
 
 export function removePanel(house, panel) {
   [...panel.circuits].forEach(c => removeCircuit(house, c));

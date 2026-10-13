@@ -344,6 +344,17 @@ export function setupScreen(house, { sub = false } = {}) {
   });
 }
 
+// "That would drop breaker 26 and what’s known about it." Or, for the breaker feeding a subpanel, which one.
+function dropWarning(house, losing) {
+  const names = losing.map(M.circuitName);
+  const which = names.length === 1 ? `breaker ${names[0]}` : `breakers ${names.slice(0, -1).join(', ')} and ${names.at(-1)}`;
+  const feeder = losing.find(c => M.feedsPanel(house, c));
+  const what = !feeder ? `${names.length === 1 ? '' : ','} and what’s known about ${names.length === 1 ? 'it' : 'them'}`
+    : names.length === 1 ? `, which feeds ${M.feedsPanel(house, feeder).name}`
+    : `, and ${M.circuitName(feeder)} feeds ${M.feedsPanel(house, feeder).name}`;
+  return `That would drop ${which}${what}. Tap again to go ahead.`;
+}
+
 // Panel details: name, place, spaces, main breaker, what feeds it, and removing it.
 export function panelSheet(house, panel, after) {
   const i = house.panels.indexOf(panel);
@@ -366,10 +377,11 @@ export function panelSheet(house, panel, after) {
     body.querySelector('#fedBy')?.addEventListener('change', e => { panel.fedBy = e.target.value || null; save(); });
     body.querySelectorAll('[data-step]').forEach(b => b.addEventListener('click', () => {
       const next = M.evenSpaces(panel.spaces + Number(b.dataset.step));
-      const losing = panel.circuits.filter(c => M.spacesOf(c).some(s => s > next));
-      if (losing.some(c => M.thingsOn(house, c.id).length) && !b.dataset.sure) {
-        b.dataset.sure = '1';
-        return toast(`That would drop ${plural(losing.length, 'breaker')} with things on. Tap again to go ahead.`);
+      const losing = M.atRisk(house, panel, next);
+      // Asks once for each size, so every further breaker lost asks again.
+      if (losing.length && b.dataset.sure !== String(next)) {
+        b.dataset.sure = String(next);
+        return toast(dropWarning(house, losing));
       }
       M.resizePanel(house, panel, next);
       body.querySelector('#pSpaces').textContent = panel.spaces;
