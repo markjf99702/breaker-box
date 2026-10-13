@@ -72,7 +72,7 @@ export function moreScreen(house) {
       <p>Everything stays in this browser${store.saved ? '' : ', but this browser isn’t letting it save, so it will be gone when you close it'}. Save a backup file to keep it safe or move it to another phone or computer.</p>
       <div class="row-btns">
         <button type="button" class="btn" data-act="save" ${canSave() ? '' : 'hidden'}>Save a backup</button>
-        <label class="btn">Load a backup<input type="file" id="loadBackup" accept=".json,application/json" hidden></label>
+        <label class="btn file-pick">Load a backup<input type="file" id="loadBackup" accept=".json,application/json"></label>
       </div>
     </section>
     <section class="card">

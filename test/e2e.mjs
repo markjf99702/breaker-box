@@ -62,6 +62,10 @@ await page.goto(base);
 await page.evaluate(() => document.fonts.ready);
 assert.match(await text(page), /Map your breaker panel/);
 await fits(page, 'the welcome screen');
+// Load a backup can be reached from the keyboard, and shows where the focus is.
+for (let i = 0; i < 12 && await page.evaluate(() => document.activeElement.id) !== 'loadBackup'; i++) await page.keyboard.press('Tab');
+assert.equal(await page.evaluate(() => document.activeElement.id), 'loadBackup', 'Tab reaches Load a backup');
+assert.notEqual(await page.locator('label:has(#loadBackup)').evaluate(el => getComputedStyle(el).outlineStyle), 'none', 'with a ring round it');
 
 await page.click('text=Set up my panel');
 await page.locator('#setup').waitFor();
@@ -225,6 +229,8 @@ await page.emulateMedia({ media: 'screen' });
 
 // ---------- Send a read-only copy ----------
 await page.click('#moreLink');
+await page.locator('#loadBackup').waitFor({ state: 'attached' });
+assert.ok(await page.evaluate(() => { const input = document.getElementById('loadBackup'); input.focus(); return document.activeElement === input; }), 'Load a backup on More takes the keyboard too');
 await page.click('[data-act="share"]');
 await page.fill('#shName', 'Mark');
 await page.waitForFunction(() => document.querySelector('#shLink').value.includes('#/view/z'));

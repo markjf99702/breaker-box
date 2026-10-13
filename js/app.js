@@ -119,7 +119,7 @@ function welcome() {
     <p class="calm">Flipping breakers is fine. Opening the panel cover or changing wiring is a job for a licensed electrician.</p>
     <div class="keep">
       <p>Your map stays in this browser. Nothing is sent anywhere unless you share a link.</p>
-      <label class="link-btn">Load a backup<input type="file" id="loadBackup" accept=".json,application/json" hidden></label>
+      <label class="link-btn file-pick">Load a backup<input type="file" id="loadBackup" accept=".json,application/json"></label>
     </div>`;
   on({
     click(e) {
