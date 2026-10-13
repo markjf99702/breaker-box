@@ -218,6 +218,7 @@ test('a breaker feeding a subpanel carries everything on it', () => {
   appliance(h, garage.id, 'Freezer', { circuitId: sub.circuits.find(c => c.space === 2).id });
   const l = M.loadOf(h, feeder);
   assert.equal(l.subTotal, 7700);
+  assert.equal(l.subHours, 7200, 'the EV charger runs for hours; the freezer doesn’t count');
   assert.equal(l.total, 7700);
   assert.equal(l.capacity, 14400);
   assert.equal(l.sub, sub);

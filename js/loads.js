@@ -22,8 +22,13 @@ export function loadLine(house, l) {
     const what = big.length > 1 ? `Running the ${esc(names(big))} at once comes to ${W(l.total)}` : l.sub ? `Everything known on it comes to ${W(l.total)}` : `${esc(cap(names(big)))} alone comes to ${W(l.total)}`;
     out = `${what}. ${carries}, so it will likely trip.${sub}${big.length > 1 ? ' Plugging one of the big ones in on another breaker would help.' : ''}`;
   } else if (l.status === 'tight' && l.why === 'hours') {
+    // Only what runs for hours counts here, whether it's on this breaker, on the subpanel it feeds, or both.
     const long = big.filter(i => i.hours);
-    out = `${esc(cap(names(long)))} ${long.length > 1 ? 'run' : 'runs'} for hours at a time, ${W(l.hours)}. The usual guideline keeps that under 80% of the breaker, ${W(l.limit)} here.${sub}`;
+    const guide = `The usual guideline keeps that under 80% of the breaker, ${W(l.limit)} here.`;
+    const subName = l.sub && esc(l.sub.name);
+    if (!l.subHours) out = `${esc(cap(names(long)))} ${long.length > 1 ? 'run' : 'runs'} for hours at a time, ${W(l.hours)}. ${guide}`;
+    else if (!long.length) out = `Things on ${subName} that run for hours come to ${W(l.hours)}. ${guide}`;
+    else out = `Things that run for hours, on it and on ${subName}, come to ${W(l.hours)}. ${guide} That includes ${W(l.subHours)} on ${subName}.`;
   } else if (l.status === 'tight') {
     out = big.length > 1
       ? `${esc(cap(names(big)))} together come to ${W(l.total)}, close to the ${W(l.capacity)} this breaker carries. Fine one at a time; all at once is near the limit.${sub}`

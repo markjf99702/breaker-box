@@ -352,6 +352,34 @@ assert.equal(await tileState('Floodlight'), '✓ on Garage 5');
 await rp.click('#sheet .sheet-actions [data-close]');
 await closeSheet(rp);
 
+// What a breaker feeding a subpanel says when the things that run for hours are on the subpanel, on both, or only on it.
+const feederLines = await rp.evaluate(async () => {
+  const { M } = window.breakerBox;
+  const { loadLine } = await import('./js/loads.js');
+  const h = M.blankHouse('Shop');
+  const feeder = M.addPanel(h, { spaces: 12, fill: 15 }).circuits[0];
+  M.setPoles(h, feeder, 2);
+  feeder.amps = 30;
+  const shop = M.addPanel(h, { name: 'Shop subpanel', spaces: 4, fill: 20, fedBy: feeder.id });
+  const room = M.addRoom(h, 'Shop');
+  M.addThing(h, room.id, { kind: 'appliance', name: 'Water heater', watts: 4500, volts: 240, hours: true, circuitId: shop.circuits[0].id });
+  const heater = M.addThing(h, room.id, { kind: 'appliance', name: 'Space heater', watts: 1500, hours: true, circuitId: shop.circuits[1].id });
+  const out = [loadLine(h, M.loadOf(h, feeder))];
+  feeder.amps = 50;
+  heater.circuitId = null;
+  M.addThing(h, room.id, { kind: 'appliance', name: 'Hot tub', watts: 6000, volts: 240, hours: true, circuitId: feeder.id });
+  out.push(loadLine(h, M.loadOf(h, feeder)));
+  feeder.amps = 30;
+  Object.assign(h.things.find(t => t.name === 'Water heater'), { watts: 1000, hours: false });
+  out.push(loadLine(h, M.loadOf(h, feeder)));
+  return out;
+});
+assert.deepEqual(feederLines, [
+  'Things on Shop subpanel that run for hours come to 6,000 W. The usual guideline keeps that under 80% of the breaker, 5,760 W here.',
+  'Things that run for hours, on it and on Shop subpanel, come to 10,500 W. The usual guideline keeps that under 80% of the breaker, 9,600 W here. That includes 4,500 W on Shop subpanel.',
+  'Hot tub runs for hours at a time, 6,000 W. The usual guideline keeps that under 80% of the breaker, 5,760 W here.',
+]);
+
 // ---------- Printing a subpanel added later ----------
 // Print remembers the card size, but every panel is ticked each visit, including one added since the last.
 const sub = await device();

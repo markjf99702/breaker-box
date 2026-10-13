@@ -319,15 +319,16 @@ export function loadOf(house, c, seen = new Set()) {
   let total = items.reduce((s, i) => s + i.watts, 0);
   let hours = items.filter(i => i.hours).reduce((s, i) => s + i.watts, 0);
   const sub = feedsPanel(house, c);
-  let subTotal = 0;
+  let subTotal = 0, subHours = 0;
   if (sub) {
     for (const sc of sub.circuits) {
       if (seen.has(sc.id)) continue;
       const l = loadOf(house, sc, seen);
       subTotal += l.total;
-      hours += l.hours;
+      subHours += l.hours;
     }
     total += subTotal;
+    hours += subHours;
   }
   const cap = capacity(c);
   const limit = Math.round(cap * CONTINUOUS);
@@ -337,7 +338,7 @@ export function loadOf(house, c, seen = new Set()) {
   else if (hours > limit) { status = 'tight'; why = 'hours'; }
   else if (total > limit) { status = 'tight'; why = 'total'; }
   const needs240 = c.poles === 1 ? thingsOn(house, c.id).filter(t => t.volts === 240) : [];
-  return { circuit: c, items, total, hours, capacity: cap, limit, share: cap ? total / cap : 0, status, why, sub, subTotal, needs240 };
+  return { circuit: c, items, total, hours, capacity: cap, limit, share: cap ? total / cap : 0, status, why, sub, subTotal, subHours, needs240 };
 }
 
 const RANK = { over: 0, tight: 1, ok: 2, unknown: 3 };
