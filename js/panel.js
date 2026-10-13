@@ -198,8 +198,9 @@ export function breakerSheet(house, c, after) {
           toast(`Space ${c.space} now holds ${c.space}A and ${c.space}B.`);
         } else {
           if (c.half) {
+            const from = `${c.space}${c.half === 'A' ? 'B' : 'A'}`; // the other half, whose things move onto this one
             const r = M.setTandem(house, c, false);
-            if (r.moved) toast(`Moved ${plural(r.moved, 'thing')} from ${c.space}B onto ${c.space}.`);
+            if (r.moved) toast(`Moved ${plural(r.moved, 'thing')} from ${from} onto ${c.space}.`);
           }
           const r = M.setPoles(house, c, v === 'double' ? 2 : 1);
           if (!r.ok) toast(r.error);

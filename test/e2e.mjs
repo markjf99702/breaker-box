@@ -381,10 +381,17 @@ const feederLines = await rp.evaluate(async () => {
   return out;
 });
 assert.deepEqual(feederLines, [
-  'Things on Shop subpanel that run for hours come to 6,000 W. The usual guideline keeps that under 80% of the breaker, 5,760 W here.',
-  'Things that run for hours, on it and on Shop subpanel, come to 10,500 W. The usual guideline keeps that under 80% of the breaker, 9,600 W here. That includes 4,500 W on Shop subpanel.',
-  'Hot tub runs for hours at a time, 6,000 W. The usual guideline keeps that under 80% of the breaker, 5,760 W here.',
+  'Things on Shop subpanel that run for hours come to 6,000\u00a0W. The usual guideline keeps that under 80% of the breaker, 5,760\u00a0W here.',
+  'Things that run for hours, on it and on Shop subpanel, come to 10,500\u00a0W. The usual guideline keeps that under 80% of the breaker, 9,600\u00a0W here. That includes 4,500\u00a0W on Shop subpanel.',
+  'Hot tub runs for hours at a time, 6,000\u00a0W. The usual guideline keeps that under 80% of the breaker, 5,760\u00a0W here.',
 ]);
+
+// Making a tandem's B half a single breaker brings A's things over, and says they came from A.
+await breaker(rp, '1B').click();
+await rp.click('#sheet .seg[data-name="poles"] button[data-v="single"]');
+assert.equal(await toastText(), 'Moved 2 things from 1A onto 1.');
+await closeSheet(rp);
+assert.match(await breaker(rp, 1).innerText(), /Shed/);
 
 // ---------- Jumping to a room while a breaker is off ----------
 // The room's heading lands just below the header that sticks at the top, and with reduced motion it jumps straight there.
