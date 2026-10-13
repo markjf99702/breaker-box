@@ -728,6 +728,7 @@ body.focus .toast { bottom: calc(96px + env(safe-area-inset-bottom)); }
 
 @media print {
   @page { margin: .5in; }
+  :root { color-scheme: light; } /* or the margins print in the dark scheme's colour */
   html, body { background: #fff !important; color: #111; }
   .bar, .tabs, .toast, .no-print, .sample-banner, .sheet, .walk-bar, .jd-foot { display: none !important; }
   main { padding: 0 !important; margin: 0 !important; max-width: none !important; }

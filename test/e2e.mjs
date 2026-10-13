@@ -225,7 +225,9 @@ assert.equal(pdf.toString('latin1').match(/\/Type \/Page\b/g).length, 2, 'the ca
 await page.emulateMedia({ media: 'print' });
 assert.equal(await page.locator('.bar').isVisible(), false, 'the top bar doesn’t print');
 assert.equal(await page.locator('.print-controls').isVisible(), false);
-await page.emulateMedia({ media: 'screen' });
+await page.emulateMedia({ media: 'print', colorScheme: 'dark' });
+assert.equal(await page.evaluate(() => getComputedStyle(document.documentElement).colorScheme), 'light', 'a phone in dark mode prints on white, margins too');
+await page.emulateMedia({ media: 'screen', colorScheme: 'light' });
 
 // ---------- Send a read-only copy ----------
 await page.click('#moreLink');
