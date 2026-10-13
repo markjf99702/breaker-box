@@ -305,6 +305,43 @@ test('find one thing’s breaker: likeliest first', () => {
   assert.equal(h.session.step, 'found');
 });
 
+test('a search never points at a breaker that is gone', () => {
+  const h = house(12);
+  const bath = M.addRoom(h, 'Bath');
+  const fan = appliance(h, bath.id, 'Bath fan');
+  M.startFind(h, fan.id);
+  const first = M.currentTry(h);
+  M.stillOn(h, first.id);
+  const second = M.currentTry(h);
+  M.wentOff(h, second.id);
+  M.removeCircuit(h, first);
+  assert.deepEqual(h.session.tried, [], 'a removed breaker drops out of the ones tried');
+  M.removeCircuit(h, second);
+  assert.equal(h.session.step, 'try', 'removing the breaker it was found on goes back to trying');
+  assert.equal(h.session.found, null);
+  assert.equal(fan.circuitId, null);
+  assert.ok(M.currentTry(h));
+
+  // Shrinking the panel takes breakers out the same way.
+  M.wentOff(h, at(h, 12).id);
+  M.resizePanel(h, h.panels[0], 10);
+  assert.equal(h.session.step, 'try');
+  assert.equal(h.session.found, null);
+
+  // Folding a tandem's B half into A: what was found on B is on A now, and so is the search.
+  const c = at(h, 6);
+  const { partner } = M.setTandem(h, c, true);
+  M.wentOff(h, partner.id);
+  M.setTandem(h, c, false);
+  assert.equal(h.session.found, c.id);
+  assert.equal(fan.circuitId, c.id);
+
+  // One saved before this was fixed loads at the trying step.
+  const saved = M.tidy({ ...JSON.parse(JSON.stringify(h)), session: { mode: 'find', thing: fan.id, tried: [], step: 'found', found: 'gone' } });
+  assert.equal(saved.session.step, 'try');
+  assert.equal(saved.session.found, null);
+});
+
 test('search finds things by room and name, and breakers by number', () => {
   const h = sampleHouse();
   const island = M.search(h, 'kitchen island');

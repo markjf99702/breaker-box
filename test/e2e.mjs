@@ -272,6 +272,31 @@ await page.locator('.door').waitFor();
 assert.equal(await page.locator('.sample-banner').count(), 0);
 assert.match(await page.locator('#houseName').innerText(), /Elm Street/);
 
+// ---------- Changing the panel part way through mapping ----------
+// On a second phone with the sample house: removing the breaker a search just landed on sends it back to trying
+// the rest, rather than leaving Map it blank.
+const rev = await device();
+const rp = rev.page;
+await rp.goto(base + '#/sample');
+await rp.locator('.door').waitFor();
+await tab(rp, 'map');
+await rp.click('.pick-list button:has-text("Dehumidifier")');
+await rp.click('[data-went]');
+assert.match(await rp.locator('.say').innerText(), /Dehumidifier is on breaker 23\./);
+await tab(rp, 'panel');
+await breaker(rp, 23).click();
+await rp.click('#bRemove');
+await tab(rp, 'map');
+assert.match(await rp.locator('.try-card .say').innerText(), /^Flip breaker \S+ off\.$/, 'trying the next breaker');
+await rp.reload();
+await rp.locator('.try-card').waitFor();
+// One already saved pointing at a breaker that's gone opens at the trying step too.
+await rp.evaluate(() => { const h = breakerBox.store.house(); h.session.step = 'found'; h.session.found = 'gone'; });
+await tab(rp, 'rooms');
+await tab(rp, 'map');
+assert.match(await rp.locator('.try-card .say').innerText(), /^Flip breaker \S+ off\.$/);
+await rp.click('[data-act="stop"]');
+
 // Survives a reload, a flip test survives a reload part way, and it works offline once it has been opened.
 await tab(page, 'map');
 await page.click('text=Start with breaker 3');

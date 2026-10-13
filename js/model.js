@@ -153,7 +153,19 @@ export function removeCircuit(house, c) {
   }
   for (const p of house.panels) if (p.fedBy === c.id) p.fedBy = null;
   panel.circuits = panel.circuits.filter(x => x !== c);
-  if (house.session?.circuit === c.id) house.session = null;
+  leaveSession(house, c.id);
+}
+
+// A mapping session can't point at a breaker that's gone: flip-testing it stops, and a search drops it from the
+// ones tried and, if it was found there, goes back to trying the rest. into: where its things went instead.
+function leaveSession(house, id, into = null) {
+  const s = house.session;
+  if (s?.mode === 'flip' && s.circuit === id) house.session = null;
+  if (s?.mode !== 'find') return;
+  s.tried = s.tried.filter(x => x !== id);
+  if (s.found !== id) return;
+  s.found = into;
+  if (!into) s.step = 'try';
 }
 
 // Single pole (120 V) or double pole (240 V). A double-pole breaker takes the space below its own.
@@ -197,6 +209,7 @@ export function setTandem(house, c, on) {
     for (const t of thingsOn(house, partner.id)) { t.circuitId = c.id; moved++; }
     for (const p of house.panels) if (p.fedBy === partner.id) p.fedBy = c.id;
     panel.circuits = panel.circuits.filter(x => x !== partner);
+    leaveSession(house, partner.id, c.id);
   }
   c.half = null;
   return { ok: true, moved };
@@ -573,7 +586,8 @@ export function tidy(h) {
   if (s?.mode === 'flip' && ids.has(s.circuit)) {
     house.session = { mode: 'flip', circuit: s.circuit, step: ['off', 'walk', 'on'].includes(s.step) ? s.step : 'off', was: typeof s.was === 'object' && s.was ? s.was : {} };
   } else if (s?.mode === 'find' && house.things.some(t => t.id === s.thing)) {
-    house.session = { mode: 'find', thing: s.thing, tried: Array.isArray(s.tried) ? s.tried.filter(id => ids.has(id)) : [], step: s.step === 'found' ? 'found' : 'try', found: ids.has(s.found) ? s.found : null };
+    const found = ids.has(s.found) ? s.found : null;
+    house.session = { mode: 'find', thing: s.thing, tried: Array.isArray(s.tried) ? s.tried.filter(id => ids.has(id)) : [], step: s.step === 'found' && found ? 'found' : 'try', found };
   }
   return house;
 }

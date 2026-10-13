@@ -318,6 +318,8 @@ function findScreen(house) {
   const t = M.findThing(house, s.thing);
   const r = M.roomOf(house, t);
   focus(false);
+  // The breaker it was found on has gone (removed, or the panel made smaller): carry on trying the rest.
+  if (s.step === 'found' && !M.findCircuit(house, s.found)) { s.step = 'try'; s.found = null; store.put(house); }
   if (s.step === 'found') {
     const c = M.findCircuit(house, s.found);
     const others = M.thingsOn(house, c.id).filter(x => x !== t);
