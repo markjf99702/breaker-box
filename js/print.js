@@ -10,10 +10,14 @@ export const SIZES = {
   page: { w: 7.2, h: 9.4, label: 'Full page' },
 };
 
-// What's on the screen between visits: the card size and what to print.
+// What's on the screen between visits: the card size and what to print. Anything else in the saved copy is
+// left alone, such as the panels older versions kept, which left out any added since, or anything odd.
 const opts = { size: '5x8', card: true, list: true };
-try { Object.assign(opts, JSON.parse(localStorage.getItem('breaker-box-print')) || {}); } catch { /* defaults */ }
-delete opts.panels; // which panels used to be kept too, and left out any added since
+try {
+  const saved = JSON.parse(localStorage.getItem('breaker-box-print'));
+  if (Object.hasOwn(SIZES, saved?.size)) opts.size = saved.size;
+  for (const k of ['card', 'list']) if (typeof saved?.[k] === 'boolean') opts[k] = saved[k];
+} catch { /* defaults */ }
 const remember = () => { try { localStorage.setItem('breaker-box-print', JSON.stringify(opts)); } catch { /* fine */ } };
 // The panels to print: every one at the start of each visit.
 let panels = [];

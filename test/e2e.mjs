@@ -443,6 +443,20 @@ assert.equal(await sp.locator('.pcard').count(), 2, 'after a reload too');
 assert.equal(await sp.locator('.pcard').first().evaluate(el => el.style.width), '4in', 'the card size is remembered');
 await sub.ctx.close();
 
+// Odd print settings in storage (edited by hand, or from an old version) fall back to the usual ones.
+const odd = await device();
+const op = odd.page;
+await op.goto(base + '#/sample');
+await op.locator('.door').waitFor();
+for (const saved of ['{"size":"A4","panels":"all"}', '{"size":null,"card":"yes"}', '"5x8"', 'not json']) {
+  await op.evaluate(s => { localStorage.setItem('breaker-box-print', s); location.hash = '#/print'; }, saved);
+  await op.reload();
+  await op.locator('.pcard').first().waitFor({ timeout: 5000 });
+  assert.equal(await op.locator('.pcard').count(), 2, `both panels print with ${saved} saved`);
+  assert.equal(await op.locator('.seg[data-name="size"] [aria-checked="true"]').innerText(), '5 × 8 in');
+}
+await odd.ctx.close();
+
 // Survives a reload, a flip test survives a reload part way, and it works offline once it has been opened.
 await tab(page, 'map');
 await page.click('text=Start with breaker 3');
