@@ -56,6 +56,13 @@ export function numText(house, c) {
   return `${house.panels.length > 1 && p !== house.panels[0] ? `${shortPanel(p)} ` : ''}${M.circuitName(c)}`;
 }
 
+// The number of breakers still to map, on the Map it tab.
+export function mapBadge(house) {
+  const p = M.progress(house);
+  const pill = document.querySelector('[data-tab="map"]');
+  if (pill) pill.dataset.count = p.circuits - p.mapped || '';
+}
+
 export const roomDot = room => `<i class="rdot" style="--rc:var(--r${room?.color ?? 0})" aria-hidden="true"></i>`;
 
 // One set of listeners on the page; each screen says what they do.

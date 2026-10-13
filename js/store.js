@@ -19,6 +19,7 @@ function read() {
 
 let state = read();
 let saved = true;
+let watcher = null;
 
 function write() {
   try {
@@ -44,7 +45,10 @@ export const store = {
     if (i >= 0) state.houses[i] = h; else state.houses.push(h);
     if (!state.current || !state.houses.some(x => x.id === state.current)) state.current = h.id;
     write();
+    watcher?.(h);
   },
+  // What else to bring up to date after every change, such as the count on the Map it tab.
+  watch(fn) { watcher = fn; },
   remove(id) {
     state.houses = state.houses.filter(h => h.id !== id);
     if (state.current === id) state.current = state.houses.find(h => !h.sample)?.id || state.houses[0]?.id || null;

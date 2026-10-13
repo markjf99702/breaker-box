@@ -4,7 +4,7 @@ import * as M from './model.js';
 import { store } from './store.js';
 import { readView } from './share.js';
 import { sampleHouse } from './sample.js';
-import { app, esc, on, go, toast, sheet, dropSheet, icon, roomDot, badge, plural, W } from './ui.js';
+import { app, esc, on, go, toast, sheet, dropSheet, icon, roomDot, badge, plural, W, mapBadge } from './ui.js';
 import { panelScreen, setupScreen, panelDoor, breakerSheet } from './panel.js';
 import { roomsScreen } from './rooms.js';
 import { mapScreen, keepAwake } from './map.js';
@@ -55,10 +55,10 @@ function route() {
   };
   (screens[head] || screens.panel)();
   if (house.sample && !(head === 'map' && house.session)) sampleBanner(house);
-  const pill = document.querySelector('[data-tab="map"]');
-  const p = M.progress(house);
-  pill.dataset.count = p.circuits - p.mapped || '';
+  mapBadge(house);
 }
+// Mapping something on any screen brings the count on the Map it tab up to date straight away.
+store.watch(h => { if (h === store.house()) mapBadge(h); });
 
 // The top bar and the tabs: which house, which screen.
 function chrome(house, head) {
