@@ -1,7 +1,7 @@
 // Saves the houses in this browser. Nothing leaves the device unless you share a link or save a backup.
 import { tidy } from './model.js';
 
-const KEY = 'breaker-box';
+export const KEY = 'breaker-box';
 
 export function parse(text) {
   const data = JSON.parse(text);
@@ -69,7 +69,29 @@ export const store = {
     return added;
   },
   reset() { state = { houses: [], current: null, name: '' }; write(); },
+  // Another tab, or the installed app, saved a change (text, what it saved): take it, so a change made here next
+  // doesn't save over it. False when that isn't a map, which leaves this page as it was.
+  reload(text) {
+    const next = fresher(state, text);
+    if (next) state = next;
+    return !!next;
+  },
 };
+
+// Pure, so the tests can check it: this page's state brought up to date from what another page saved. This page keeps
+// its own house open, and a mapping session in progress here while what it points at is still there. Null if the text
+// isn't a map.
+export function fresher(current, text) {
+  let data;
+  try { data = parse(text); } catch { return null; }
+  const houses = data.houses.map(raw => {
+    const h = tidy(raw);
+    const mine = current.houses.find(x => x.id === h.id)?.session;
+    const kept = mine && tidy({ ...h, session: mine });
+    return kept?.session ? kept : h;
+  });
+  return { houses, current: houses.some(h => h.id === current.current) ? current.current : data.current || null, name: String(data.name || '') };
+}
 
 export function backupText(s) {
   return JSON.stringify({ app: 'breaker-box', version: 1, saved: new Date().toISOString(), ...s, houses: s.houses.filter(h => !h.sample) }, null, 1);

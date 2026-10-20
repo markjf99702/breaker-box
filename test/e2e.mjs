@@ -609,6 +609,42 @@ assert.equal(await np.locator('.plist li', { hasText: 'Shed light' }).locator('b
 assert.equal(await np.evaluate(() => window.ran), undefined, 'nothing in a name runs');
 await named.ctx.close();
 
+// ---------- Two tabs ----------
+// A change made in one tab shows in the other straight away, so a change made there next doesn't save over it.
+const two = await device();
+const ta = two.page;
+await ta.goto(base);
+await ta.click('text=Set up my panel');
+await ta.click('text=Make the panel');
+await ta.locator('.door').waitFor();
+const tb = await two.ctx.newPage();
+tb.on('pageerror', e => problems.push(e.message));
+await tb.goto(base + '#/rooms');
+await tb.locator('.add-rooms').waitFor();
+await tab(ta, 'rooms');
+await ta.click('.chip[data-room="Kitchen"]');
+await tb.locator('.room h2', { hasText: 'Kitchen' }).waitFor({ timeout: 5000 });
+await tb.click('.chip[data-room="Garage"]');
+await ta.locator('.room h2', { hasText: 'Garage' }).waitFor({ timeout: 5000 });
+assert.deepEqual(await ta.evaluate(() => JSON.parse(localStorage.getItem('breaker-box')).houses[0].rooms.map(r => r.name)), ['Kitchen', 'Garage'], 'both tabs’ rooms are kept');
+// A sheet open in one tab stays open, and the other tab's change shows when it closes.
+await tb.click('.room [data-room-edit]');
+await ta.click('.chip[data-room="Office"]');
+await tb.waitForTimeout(300);
+assert.equal(await tb.locator('#sheet').evaluate(d => d.open), true, 'the sheet stays open');
+await closeSheet(tb);
+await tb.locator('.room h2', { hasText: 'Office' }).waitFor({ timeout: 5000 });
+// A breaker being flip-tested in one tab carries on when the other tab changes something.
+await tab(ta, 'map');
+await ta.click('text=Start with breaker 1');
+await ta.click('text=It’s off');
+await settle(ta);
+await ta.locator('.walk-room', { hasText: 'Kitchen' }).locator('[data-add$=":outlet"]').click();
+await tb.click('.chip[data-room="Laundry"]');
+await ta.locator('.walk-room h2', { hasText: 'Laundry' }).waitFor({ timeout: 5000 });
+assert.equal(await ta.locator('#deadCount').innerText(), '1 thing dead', 'still flip-testing breaker 1');
+await two.ctx.close();
+
 // ---------- When the browser won't save ----------
 // Its storage is full (every tool at junkdrawer.works shares it) or blocked: it says so once a visit, with a way to keep the map.
 const full = await device();

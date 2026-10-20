@@ -1,7 +1,7 @@
 // The page: which screen goes with which address, the welcome screen, the sample banner,
 // and opening a read-only copy someone sent.
 import * as M from './model.js';
-import { store } from './store.js';
+import { store, KEY } from './store.js';
 import { readView } from './share.js';
 import { sampleHouse } from './sample.js';
 import { app, esc, on, go, toast, sheet, dropSheet, icon, roomDot, badge, plural, W, mapBadge, when, canSave } from './ui.js';
@@ -27,6 +27,7 @@ document.getElementById('moreLink').innerHTML = icon('more');
 let lastPath = null;
 
 function route() {
+  behind = false;
   const path = location.hash.replace(/^#\/?/, '');
   const [head, a] = path.split('/');
   if (path !== lastPath) { window.scrollTo(0, 0); lastPath = path; }
@@ -71,6 +72,22 @@ store.onFail(() => {
     else toast('This browser isn’t saving your map, so it will be gone when you close it.');
   });
 });
+
+// Another tab, or the installed app, saved a change: take it straight away, so a change made here next doesn't save
+// over it, and show it, unless a sheet is open, something is being typed or a form is half filled in. Then it shows
+// when the sheet closes or the screen changes.
+let behind = false;
+const busy = () => document.getElementById('sheet').open || !!document.activeElement?.matches('input, textarea, select')
+  || /^#\/?(setup|panel\/new|view\/)/.test(location.hash);
+function redraw() {
+  behind = busy();
+  if (behind) return;
+  const y = scrollY;
+  route();
+  window.scrollTo(0, y);
+}
+window.addEventListener('storage', e => { if (e.key === KEY && e.newValue !== null && store.reload(e.newValue)) redraw(); });
+document.getElementById('sheet').addEventListener('close', () => { if (behind) redraw(); });
 
 // The top bar and the tabs: which house, which screen.
 function chrome(house, head) {

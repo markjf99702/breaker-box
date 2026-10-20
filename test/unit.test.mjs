@@ -5,7 +5,7 @@ import { readFile, readdir } from 'node:fs/promises';
 import * as M from '../js/model.js';
 import { sampleHouse } from '../js/sample.js';
 import { pack, unpack, compact, expand } from '../js/share.js';
-import { merge, backupText } from '../js/store.js';
+import { merge, backupText, fresher } from '../js/store.js';
 import { APPLIANCES, appliancesFor, findAppliance } from '../js/catalog.js';
 
 // A house with one panel of `spaces`, every space holding a 15 A single-pole breaker.
@@ -509,6 +509,31 @@ test('backups: the sample stays out, newer copies win, other files are refused',
 
   assert.throws(() => merge(empty, '{"app":"on-balance","houses":[]}'), /isn’t a Breaker Box backup/);
   assert.throws(() => merge(empty, 'not json'), /isn’t a Breaker Box backup/);
+});
+
+test('another tab’s change comes in, keeping this tab’s house open and its breaker being tested', () => {
+  const elm = house(12);
+  elm.name = 'Elm';
+  const oak = house(12);
+  oak.name = 'Oak';
+  const here = { houses: [elm, oak], current: oak.id, name: 'Mark' };
+  // This tab is flip-testing Oak's breaker 1. The other tab, which never saw that start, added a room to Oak and opened Elm.
+  const theirs = JSON.parse(JSON.stringify({ houses: [elm, oak], current: elm.id, name: 'Mark' }));
+  M.startFlip(oak, at(oak, 1).id);
+  theirs.houses[1].rooms.push({ id: 'r1', name: 'Kitchen', color: 0 });
+  const next = fresher(here, JSON.stringify(theirs));
+  assert.equal(next.current, oak.id, 'this tab stays on Oak');
+  assert.deepEqual(next.houses[1].rooms.map(r => r.name), ['Kitchen'], 'with the other tab’s room');
+  assert.equal(next.houses[1].session?.circuit, at(oak, 1).id, 'and the breaker still being tested here');
+  assert.equal(next.houses[0].session, null);
+  // Unless the other tab removed that breaker.
+  theirs.houses[1].panels[0].circuits.shift();
+  assert.equal(fresher(here, JSON.stringify(theirs)).houses[1].session, null);
+  // Or removed the house this tab has open: then it opens what the other tab had.
+  assert.equal(fresher(here, JSON.stringify({ ...theirs, houses: [theirs.houses[0]] })).current, elm.id);
+  // Anything that isn't a map changes nothing.
+  assert.equal(fresher(here, 'not json'), null);
+  assert.equal(fresher(here, '{"houses":"no"}'), null);
 });
 
 test('the appliance list', () => {
