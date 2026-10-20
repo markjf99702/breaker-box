@@ -2,7 +2,9 @@
 // load checks, the labels the directory prints, mapping progress and the two mapping workflows.
 // No page code, so the unit tests run it in Node.
 //
-// A house:   { id, name, panels: [Panel], rooms: [Room], things: [Thing], session }
+// A house:   { id, name, panels: [Panel], rooms: [Room], things: [Thing], session, copy? }
+//            copy: only on a copy kept from someone's link, { of: their house's id, t: when they last changed it,
+//            at: when it was kept or updated here }, so a later link from the same house updates it.
 // A panel:   { id, name, spaces, mainAmps, where, fedBy, circuits: [Circuit] }
 //            spaces are numbered the usual US way: odd numbers down the left, even down the right,
 //            so spaces 1 and 2 share the top row. fedBy is the id of the breaker that feeds a subpanel.
@@ -614,6 +616,7 @@ export function tidy(h) {
       circuitId: t.circuitId && ids.has(t.circuitId) ? t.circuitId : null,
     });
   }
+  if (h?.copy?.of) house.copy = { of: String(h.copy.of).slice(0, 40), t: Number(h.copy.t) || 0, at: Number(h.copy.at) || 0 };
   const s = h?.session;
   if (s?.mode === 'flip' && ids.has(s.circuit)) {
     house.session = { mode: 'flip', circuit: s.circuit, step: ['off', 'walk', 'on'].includes(s.step) ? s.step : 'off', was: typeof s.was === 'object' && s.was ? s.was : {} };

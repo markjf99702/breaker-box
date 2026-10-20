@@ -279,6 +279,38 @@ await them.page.click('[data-act="keep"]');
 await them.page.locator('.door').waitFor();
 assert.equal(await them.page.locator('.door .brk').count(), 19, 'kept on their phone');
 assert.match(await them.page.locator('#houseName').evaluate(el => el.textContent), /Elm Street/);
+// Keeping the same link again opens the copy already there, rather than making a second one.
+const keptHouses = () => them.page.evaluate(() => window.breakerBox.store.houses().map(h => h.name));
+const keepFrom = async url => { await them.page.goto(url); await them.page.locator('.view-door').first().waitFor(); await them.page.click('[data-act="keep"]'); };
+await keepFrom(link);
+await them.page.locator('.door').waitFor();
+assert.equal(await them.page.locator('#toast').innerText(), 'Elm Street is already on this device.');
+assert.deepEqual(await keptHouses(), ['Elm Street']);
+// A newer link from the same house brings that copy up to date.
+const sendAgain = label => page.evaluate(async label => {
+  const { store } = window.breakerBox;
+  const h = store.house();
+  h.panels[0].circuits.find(c => c.space === 2).label = label;
+  store.put(h);
+  const { viewLink } = await import('./js/share.js');
+  return viewLink(h, 'Mark');
+}, label);
+await keepFrom(await sendAgain('Spare for now'));
+await them.page.locator('.door').waitFor();
+assert.equal(await them.page.locator('#toast').innerText(), 'Updated your copy of Elm Street.');
+assert.deepEqual(await keptHouses(), ['Elm Street']);
+assert.match(await breaker(them.page, 2).innerText(), /Spare for now/);
+// Once it's been changed on this phone, it asks before replacing it.
+await breaker(them.page, 2).click();
+await them.page.fill('#bLabel', 'Ours');
+await closeSheet(them.page);
+await keepFrom(await sendAgain('Spare'));
+assert.equal(await them.page.locator('[data-act="keep"]').innerText(), 'Tap again to replace your copy and your changes to it');
+await them.page.click('[data-act="keep"]');
+await them.page.locator('.door').waitFor();
+assert.equal(await them.page.locator('#toast').innerText(), 'Updated your copy of Elm Street.');
+assert.match(await breaker(them.page, 2).innerText(), /Spare/);
+assert.deepEqual(await keptHouses(), ['Elm Street']);
 // A copy last changed in an earlier year says which year.
 const oldLink = await page.evaluate(async () => {
   const { viewLink } = await import('./js/share.js');

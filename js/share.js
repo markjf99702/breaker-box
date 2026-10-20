@@ -1,7 +1,8 @@
 // A read-only link to the map, for someone else in the house.
 // Everything travels in the part of the link after #, which browsers never send to a server.
 //
-//   #/view/<data>   the panels, rooms and what's on each breaker, packed small
+//   #/view/<data>   the panels, rooms and what's on each breaker, packed small, and which house it is (i), so keeping a
+//                   copy of a later link updates the copy kept before. Links from before i read as they always did.
 
 import { tidy, THING_KINDS, BREAKER_KINDS } from './model.js';
 
@@ -54,6 +55,7 @@ export function compact(house, from = '') {
   const ri = new Map(house.rooms.map((r, i) => [r.id, i]));
   return {
     v: 1,
+    i: house.id,
     n: house.name,
     f: from,
     t: house.updated,
@@ -86,7 +88,7 @@ export function expand(p) {
     circuitId: circuit >= 0 ? cid[circuit] || null : null,
   }));
   const house = tidy({ id: 'shared', name: p.n, updated: p.t, panels, rooms, things });
-  return { house, from: String(p.f || '').slice(0, 40) };
+  return { house, from: String(p.f || '').slice(0, 40), id: typeof p.i === 'string' && p.i ? p.i.slice(0, 40) : null };
 }
 
 export async function viewLink(house, from) {

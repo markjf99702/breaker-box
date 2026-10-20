@@ -481,6 +481,21 @@ test('a read-only link carries the whole map', async () => {
   assert.throws(() => expand({ v: 2 }));
 });
 
+test('a link says which house it is, so a copy kept from it can be updated later', async () => {
+  const h = sampleHouse();
+  const { house, id } = expand(await unpack(await pack(compact(h, 'Mark'))));
+  assert.equal(id, h.id);
+  const old = compact(h);
+  delete old.i; // a link made before it said which house
+  assert.equal(expand(old).id, null);
+  assert.equal(expand(old).house.things.length, h.things.length, 'still reads');
+  // A kept copy remembers whose house it is, through a backup too; nothing else carries that.
+  const kept = M.tidy({ ...house, copy: { of: id, t: house.updated, at: 5 } });
+  assert.deepEqual(kept.copy, { of: id, t: house.updated, at: 5 });
+  assert.deepEqual(M.tidy(JSON.parse(JSON.stringify(kept))).copy, kept.copy);
+  assert.equal('copy' in M.tidy(house), false);
+});
+
 test('backups: the sample stays out, newer copies win, other files are refused', () => {
   const mine = house(12);
   mine.name = 'Home';

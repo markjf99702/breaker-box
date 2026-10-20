@@ -175,7 +175,7 @@ async function view(data) {
     app.innerHTML = `<div class="card empty"><h1>That link didn’t come through whole</h1><p>Ask for it again, or copy all of it into the address bar.</p><a class="btn" href="#/">Open Breaker Box</a></div>`;
     return on({});
   }
-  const { house, from } = got;
+  const { house, from, id } = got;
   document.title = `${house.name} · Breaker Box`;
   app.innerHTML = `
     <aside class="sample-banner shared" role="note">
@@ -197,12 +197,26 @@ async function view(data) {
       if (!b) return;
       if (b.dataset.act === 'info') info(house, M.findCircuit(house, b.dataset.c));
       if (b.dataset.act === 'keep') {
-        const copyOf = M.tidy({ ...house, id: M.newId('h') });
+        // A copy kept from an earlier link of the same house: open it, or bring it up to date if this link is newer,
+        // asking first if it's been changed here since.
+        const had = id && store.houses().find(h => h.copy?.of === id);
+        if (had && !(house.updated > had.copy.t)) {
+          store.use(had.id);
+          go('/panel');
+          return toast(`${had.name} is already on this device.`);
+        }
+        if (had && had.updated > had.copy.at && !b.dataset.sure) {
+          b.dataset.sure = '1';
+          b.textContent = 'Tap again to replace your copy and your changes to it';
+          return;
+        }
+        const copyOf = M.tidy({ ...house, id: had ? had.id : M.newId('h'), copy: id ? { of: id, t: house.updated } : null });
         copyOf.name = house.name;
         store.put(copyOf);
+        if (copyOf.copy) copyOf.copy.at = copyOf.updated; // saved by use() just below
         store.use(copyOf.id);
         go('/panel');
-        toast(`${house.name} is saved on this device.`);
+        toast(had ? `Updated your copy of ${house.name}.` : `${house.name} is saved on this device.`);
       }
     },
   });
