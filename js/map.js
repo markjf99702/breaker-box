@@ -244,9 +244,11 @@ function walkScreen(house, c) {
         e.preventDefault();
         const sec = document.getElementById(`w-${jump.dataset.jump}`);
         sec.querySelector('details').open = true;
-        // Just below the header, which sticks under the top bar; straight there when the phone asks for less motion.
+        // Just below the header, which sticks under the top bar, or below the top bar alone on a screen too short for the
+        // header to stick; straight there when the phone asks for less motion.
         const head = app.querySelector('.walk-head');
-        const cover = (parseFloat(getComputedStyle(head).top) || 0) + head.getBoundingClientRect().height;
+        const cover = getComputedStyle(head).position === 'sticky' ? (parseFloat(getComputedStyle(head).top) || 0) + head.getBoundingClientRect().height
+          : document.querySelector('.bar').getBoundingClientRect().height;
         const still = matchMedia('(prefers-reduced-motion: reduce)').matches;
         window.scrollTo({ top: sec.getBoundingClientRect().top + scrollY - cover - 8, behavior: still ? 'auto' : 'smooth' });
         return;

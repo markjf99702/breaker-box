@@ -518,6 +518,32 @@ assert.ok(jump.room >= jump.head && jump.room < jump.head + 20, `the Office head
 await sw.click('.walk-head [data-act="stop"]');
 await still.ctx.close();
 
+// On a phone turned sideways the header scrolls away instead, so the rooms get the screen. Done stays at the bottom,
+// and a room jumped to lands just below the top bar.
+const side = await device({ viewport: { width: 844, height: 390 }, reducedMotion: 'reduce' });
+const lp = side.page;
+await lp.goto(base + '#/sample');
+await lp.locator('.door').waitFor();
+await tab(lp, 'map');
+await lp.click('.flip-card [data-flip]');
+await lp.click('text=It’s off');
+await settle(lp);
+const sideways = await lp.evaluate(async () => {
+  const at = s => document.querySelector(s).getBoundingClientRect();
+  scrollTo(0, 300);
+  await new Promise(r => setTimeout(r, 100));
+  const scrolled = { bar: at('.bar').bottom, head: at('.walk-head').bottom, done: at('.walk-bar').bottom, height: innerHeight };
+  scrollTo(0, 0);
+  const chip = [...document.querySelectorAll('.jump a')].find(a => a.textContent.trim() === 'Office');
+  chip.click();
+  await new Promise(r => setTimeout(r, 300));
+  return { ...scrolled, office: document.querySelector(`${chip.getAttribute('href')} summary`).getBoundingClientRect().top };
+});
+assert.ok(sideways.head <= sideways.bar, `the header scrolls away: ${JSON.stringify(sideways)}`);
+assert.equal(Math.round(sideways.done), sideways.height, 'Done stays at the bottom');
+assert.ok(sideways.office >= sideways.bar && sideways.office < sideways.bar + 20, `the Office heading is just below the top bar: ${JSON.stringify(sideways)}`);
+await side.ctx.close();
+
 // ---------- Printing a subpanel added later ----------
 // Print remembers the card size, but every panel is ticked each visit, including one added since the last.
 const sub = await device();

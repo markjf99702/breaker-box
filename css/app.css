@@ -801,6 +801,12 @@ body.focus .toast { bottom: calc(96px + env(safe-area-inset-bottom)); }
   .lbl { font-size: 13.5px; padding-left: 5px; }
   .quick button { font-size: .8rem; }
 }
+/* A phone turned sideways has little height for the walk round: its header scrolls away with the page instead of
+   sticking, so the rooms get the screen, and the top bar is a little shorter. Done stays at the bottom. */
+@media (max-height: 500px) {
+  :root { --bar-h: 48px; }
+  .walk-head { position: static; }
+}
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { transition: none !important; animation: none !important; scroll-behavior: auto !important; }
 }
