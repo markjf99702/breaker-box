@@ -41,7 +41,7 @@ export function mapScreen(house) {
 const start = (house, fn, id) => { fn(house, id); store.put(house); window.scrollTo(0, 0); mapScreen(house); };
 
 // A quick double tap lands its second tap on whatever the next step drew under the finger, such as a thing on the
-// walk round that didn't go dead. Taps that soon after a step appears are ignored.
+// walk round that didn't go dead, or the next breaker's Still on. Taps that soon after a step appears are ignored.
 let settleUntil = 0;
 const settle = () => { settleUntil = performance.now() + 400; };
 const settling = e => {
@@ -378,10 +378,13 @@ function findScreen(house) {
         <div class="row-btns"><button type="button" class="btn" data-act="pick">It was another breaker</button><button type="button" class="btn" data-act="stop">Stop</button></div>
       </div>`;
   }
+  // The next breaker's Still on is drawn where the last one was, so a double tap would skip a breaker untried.
+  settle();
   on({
     click(e) {
       const b = e.target.closest('button');
       if (!b) return;
+      if ((b.dataset.went || b.dataset.still) && settling(e)) return;
       if (b.dataset.went) { M.wentOff(house, b.dataset.went); store.put(house); window.scrollTo(0, 0); findScreen(house); }
       if (b.dataset.still) { M.stillOn(house, b.dataset.still); store.put(house); findScreen(house); }
       if (b.dataset.find) start(house, M.startFind, b.dataset.find);

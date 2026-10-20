@@ -176,7 +176,10 @@ assert.match(await text(page), /4 things not found yet/);
 await page.click('.pick-list button:has-text("Microwave")');
 assert.match(await text(page), /Plug in a lamp|Switch it on/);
 const first = await page.locator('[data-still]').getAttribute('data-still');
-await page.click('[data-still]');
+await settle(page);
+// A quick double tap on Still on: the second lands on the next breaker's Still on, drawn in the same place, and is ignored.
+await page.evaluate(() => { document.querySelector('[data-still]').click(); document.querySelector('[data-still]').click(); });
+assert.equal(await page.evaluate(() => window.breakerBox.store.house().session.tried.length), 1, 'one breaker tried, not two');
 assert.match(await page.locator('.try-card .say').innerText(), /Turn \d+ back on, then flip \d+ off/);
 assert.notEqual(await page.locator('[data-went]').getAttribute('data-went'), first);
 await page.click('[data-act="pick"]');
@@ -332,6 +335,7 @@ await tab(rp, 'map');
 const left = () => rp.locator('[data-tab="map"]').getAttribute('data-count');
 assert.equal(await left(), '5', 'Map it shows how many breakers are left');
 await rp.click('.pick-list button:has-text("Dehumidifier")');
+await settle(rp);
 await rp.click('[data-went]');
 assert.match(await rp.locator('.say').innerText(), /Dehumidifier is on breaker 23\./);
 assert.equal(await left(), '4', 'and counts one fewer as soon as one is found');
@@ -571,6 +575,7 @@ await np.evaluate(name => {
 }, markup);
 await np.goto(base + '#/map');
 await np.click('.pick-list button:has-text("Counter")');
+await settle(np);
 await np.click('[data-still]');
 assert.equal(await np.locator('.try-card + .hint').innerText(), `Tried 1. After this: ${markup} 1, ${markup} 2, ${markup} 3, ${markup} 4`);
 await np.goto(base + '#/print');
