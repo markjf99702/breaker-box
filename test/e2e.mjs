@@ -192,6 +192,15 @@ assert.match(trip, /3,000\sW/);
 assert.match(trip, /1,800\sW/);
 assert.match(trip, /will likely trip/);
 assert.match(await text(page), /licensed electrician/);
+// The tally's small labels are easy to read on their tinted boxes: 4.5 to 1 or more.
+const tallyContrast = await page.evaluate(() => [...document.querySelectorAll('.tally .t')].map(el => {
+  const rgb = v => { const n = v.match(/[\d.]+/g).map(Number).slice(0, 3); return v.startsWith('color(') ? n.map(x => x * 255) : n; };
+  const lum = c => c.map(x => { x /= 255; return x <= 0.04045 ? x / 12.92 : ((x + 0.055) / 1.055) ** 2.4; }).reduce((s, x, i) => s + x * [0.2126, 0.7152, 0.0722][i], 0);
+  const cs = getComputedStyle(el);
+  const [hi, lo] = [lum(rgb(cs.color)), lum(rgb(cs.backgroundColor))].sort((a, b) => b - a);
+  return Math.round(((hi + 0.05) / (lo + 0.05)) * 100) / 100;
+}));
+assert.ok(tallyContrast.length === 3 && tallyContrast.every(r => r >= 4.5), `the tally's labels are easy to read: ${tallyContrast}`);
 await fits(page, 'the load check');
 
 // ---------- Search ----------

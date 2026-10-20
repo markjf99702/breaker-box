@@ -44,6 +44,10 @@
   --tight-soft: #f9ebc8;
   --ok: #2d7a4b;
   --ok-soft: #d9ecdf;
+  /* The Load check's tally: small text on those soft colours, so a shade darker to stay easy to read. */
+  --over-ink: color-mix(in srgb, var(--over) 85%, #000);
+  --tight-ink: color-mix(in srgb, var(--tight) 85%, #000);
+  --ok-ink: color-mix(in srgb, var(--ok) 85%, #000);
   --shadow: 0 1px 0 rgba(40, 36, 28, .05), 0 8px 22px -14px rgba(40, 36, 28, .4);
   /* One colour per room, picked to stay apart from each other on the paper labels. */
   --r0: #d63d3d; --r1: #e58a00; --r2: #2f6fd6; --r3: #23955a; --r4: #8e4bc2;
@@ -86,6 +90,9 @@
     --tight-soft: #372d17;
     --ok: #62c48d;
     --ok-soft: #1b3024;
+    --over-ink: var(--over);
+    --tight-ink: var(--tight);
+    --ok-ink: var(--ok);
     --shadow: 0 1px 0 rgba(0, 0, 0, .25), 0 10px 26px -14px rgba(0, 0, 0, .8);
     --r0: #ee5b57; --r1: #f29a1c; --r2: #5b8ef0; --r3: #37b06e; --r4: #a96ee0;
     --r5: #22b3aa; --r6: #e66ea3; --r7: #b08653; --r8: #7c93ad; --r9: #9cc233;
@@ -586,9 +593,9 @@ button.trow:hover { background: var(--soft); }
 .tally { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 0 0 6px; }
 .tally .t { display: flex; flex-direction: column; padding: 9px 12px; border-radius: 12px; font-weight: 650; font-size: .88rem; line-height: 1.2; }
 .tally b { font-size: 1.5rem; font-stretch: 85%; line-height: 1.1; }
-.t.over { background: var(--over-soft); color: var(--over); }
-.t.tight { background: var(--tight-soft); color: var(--tight); }
-.t.ok { background: var(--ok-soft); color: var(--ok); }
+.t.over { background: var(--over-soft); color: var(--over-ink); }
+.t.tight { background: var(--tight-soft); color: var(--tight-ink); }
+.t.ok { background: var(--ok-soft); color: var(--ok-ink); }
 .loads { display: grid; gap: 10px; }
 .card.load { display: block; width: 100%; text-align: left; margin: 0; font: inherit; cursor: pointer; }
 .card.load.over { border-left: 5px solid var(--over); }
