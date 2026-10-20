@@ -20,6 +20,7 @@ function read() {
 let state = read();
 let saved = true;
 let watcher = null;
+let failed = null;
 
 function write() {
   try {
@@ -27,6 +28,7 @@ function write() {
     saved = true;
   } catch {
     saved = false; // can't save here; it still works for this visit
+    failed?.();
   }
 }
 
@@ -49,6 +51,8 @@ export const store = {
   },
   // What else to bring up to date after every change, such as the count on the Map it tab.
   watch(fn) { watcher = fn; },
+  // What to do when the browser won't save a change (its storage is full, or blocked), such as saying so.
+  onFail(fn) { failed = fn; },
   remove(id) {
     state.houses = state.houses.filter(h => h.id !== id);
     if (state.current === id) state.current = state.houses.find(h => !h.sample)?.id || state.houses[0]?.id || null;

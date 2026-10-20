@@ -106,7 +106,7 @@ export function moreScreen(house) {
       if (b.dataset.use) { store.use(b.dataset.use); go('/panel'); return; }
       const act = b.dataset.act;
       if (act === 'share') shareSheet(house);
-      if (act === 'save') download(`breaker-box-${new Date().toISOString().slice(0, 10)}.json`, store.backup());
+      if (act === 'save') saveBackup();
       if (act === 'sample') openSample();
       if (act === 'unsample') { store.remove(house.id); go(store.house() ? '/panel' : '/'); toast('Sample house removed.'); }
       if (act === 'remove') {
@@ -118,6 +118,8 @@ export function moreScreen(house) {
     },
   });
 }
+
+export const saveBackup = () => download(`breaker-box-${new Date().toISOString().slice(0, 10)}.json`, store.backup());
 
 export function openSample() {
   const had = store.houses().find(h => h.sample);

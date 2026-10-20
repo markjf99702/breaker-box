@@ -609,6 +609,27 @@ assert.equal(await np.locator('.plist li', { hasText: 'Shed light' }).locator('b
 assert.equal(await np.evaluate(() => window.ran), undefined, 'nothing in a name runs');
 await named.ctx.close();
 
+// ---------- When the browser won't save ----------
+// Its storage is full (every tool at junkdrawer.works shares it) or blocked: it says so once a visit, with a way to keep the map.
+const full = await device();
+const fp = full.page;
+await fp.goto(base);
+await fp.click('text=Set up my panel');
+await fp.click('text=Make the panel');
+await fp.locator('.door').waitFor();
+await fp.evaluate(() => { Storage.prototype.setItem = () => { throw new DOMException('The quota has been exceeded.', 'QuotaExceededError'); }; });
+await tab(fp, 'rooms');
+await fp.click('.chip[data-room="Kitchen"]');
+await fp.locator('#toast', { hasText: 'isn’t saving' }).waitFor({ timeout: 3000 });
+assert.equal(await fp.locator('#toast span').innerText(), 'This browser isn’t saving your map. Save a backup to keep it.');
+assert.equal(await fp.locator('#toast button').innerText(), 'Save a backup');
+const [kept] = await Promise.all([fp.waitForEvent('download'), fp.click('#toast button')]);
+assert.deepEqual(JSON.parse(await readFile(await kept.path(), 'utf8')).houses[0].rooms.map(r => r.name), ['Kitchen'], 'the backup has the room that wasn’t saved');
+await fp.locator('.room [data-quick$=":outlet"]').click();
+await fp.waitForTimeout(100);
+assert.equal(await fp.locator('#toast span').innerText(), 'Added Outlet 1.', 'it says so only once');
+await full.ctx.close();
+
 // Survives a reload, a flip test survives a reload part way, and it works offline once it has been opened.
 await tab(page, 'map');
 await page.click('text=Start with breaker 3');

@@ -4,13 +4,13 @@ import * as M from './model.js';
 import { store } from './store.js';
 import { readView } from './share.js';
 import { sampleHouse } from './sample.js';
-import { app, esc, on, go, toast, sheet, dropSheet, icon, roomDot, badge, plural, W, mapBadge, when } from './ui.js';
+import { app, esc, on, go, toast, sheet, dropSheet, icon, roomDot, badge, plural, W, mapBadge, when, canSave } from './ui.js';
 import { panelScreen, setupScreen, panelDoor, breakerSheet } from './panel.js';
 import { roomsScreen } from './rooms.js';
 import { mapScreen, keepAwake } from './map.js';
 import { loadsScreen } from './loads.js';
 import { printScreen } from './print.js';
-import { moreScreen, searchScreen, openSample } from './more.js';
+import { moreScreen, searchScreen, openSample, saveBackup } from './more.js';
 
 const TABS = [
   ['panel', 'Panel', 'panel'],
@@ -59,6 +59,18 @@ function route() {
 }
 // Mapping something on any screen brings the count on the Map it tab up to date straight away.
 store.watch(h => { if (h === store.house()) mapBadge(h); });
+
+// When this browser won't save (its storage is full, or blocked), say so once a visit, with a way to keep the map.
+// It waits a moment, so the message about the change itself doesn't cover it straight away.
+let warned = false;
+store.onFail(() => {
+  if (warned) return;
+  warned = true;
+  setTimeout(() => {
+    if (canSave()) toast('This browser isn’t saving your map. Save a backup to keep it.', { label: 'Save a backup', run: saveBackup });
+    else toast('This browser isn’t saving your map, so it will be gone when you close it.');
+  });
+});
 
 // The top bar and the tabs: which house, which screen.
 function chrome(house, head) {
