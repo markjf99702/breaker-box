@@ -394,6 +394,24 @@ test('search finds things by room and name, and breakers by number', () => {
   assert.deepEqual(bed.slice(0, 3).map(t => M.roomOf(h, t).name), ['Bedroom 2', 'Bedroom 2', 'Bedroom 2'], 'accents and case don’t matter, and the room comes first');
 });
 
+test('a short word only finds the start of a word, and a thing’s own name comes first', () => {
+  const h = sampleHouse();
+  // Not every receptacle (an outlet's other name), the space heater, the furnace or the outlet out the back.
+  const ac = M.search(h, 'AC');
+  assert.deepEqual(ac.things.map(t => t.name), ['Window AC', 'Central AC']);
+  assert.deepEqual(ac.circuits.map(M.circuitName), ['10', '25/27'], 'the breakers labelled with the window AC and the central AC');
+  assert.deepEqual(M.search(h, 'eptac').things, [], 'an outlet’s other names count only from the start');
+  assert.equal(M.search(h, 'receptacle').things.length, h.things.filter(t => t.kind === 'outlet').length);
+
+  const office = M.blankHouse('Office');
+  const room = M.addRoom(office, 'Office');
+  M.addThing(office, room.id, { kind: 'outlet', name: 'Desk' });
+  M.addThing(office, room.id, { kind: 'appliance', name: 'Plug-in heater', watts: 1500 });
+  M.addThing(office, room.id, { kind: 'outlet', name: 'Outlet 1' });
+  assert.deepEqual(M.search(office, 'plug').things.map(t => t.name), ['Plug-in heater', 'Desk', 'Outlet 1'], 'the one called plug, then the outlets');
+  assert.deepEqual(M.search(office, 'outlet').things.map(t => t.name), ['Outlet 1', 'Desk'], 'the one called Outlet before the outlet called Desk');
+});
+
 test('the sample house is consistent', () => {
   const h = sampleHouse();
   const p = M.progress(h);

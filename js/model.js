@@ -520,18 +520,30 @@ export function search(house, query) {
   if (!words.length) return { things: [], circuits: [] };
   const numbers = words.filter(w => /^\d+$/.test(w)).map(Number);
   const text = words.filter(w => !/^\d+$/.test(w));
+  // Other names for a kind of thing, which a word finds only from their start: "rec" finds every outlet, "ac" doesn't.
   const kindWord = { outlet: 'outlet plug socket receptacle', light: 'light lights lamp', switch: 'switch', appliance: 'appliance' };
+  // A word finds the start of a word, or any part of one once it's three letters or more: "AC" and "TV" find
+  // Central AC and the TV, not the space heater, the furnace or the outlet out the back.
+  const hit = (hay, w) => hay.split(' ').some(h => h.startsWith(w)) || (w.length >= 3 && hay.includes(w));
+  const starts = (hay, w) => hay.split(' ').some(h => h.startsWith(w));
   // A number is a breaker number, or part of a name like "Bedroom 2".
-  const matches = (hay, extra = []) => text.every(w => hay.split(' ').some(h => h.startsWith(w)) || hay.includes(w))
+  const matches = (hay, extra = [], other = '') => text.every(w => hit(hay, w) || starts(other, w))
     && numbers.every(n => extra.includes(n) || hay.split(' ').includes(String(n)));
+  const rank = new Map();
   const things = house.things.filter(t => {
     const c = t.circuitId && findCircuit(house, t.circuitId);
-    const hay = norm(`${roomOf(house, t)?.name} ${t.name} ${kindWord[t.kind]} ${c ? circuitName(c) : ''}`);
-    return matches(hay, c ? spacesOf(c) : []);
+    const room = norm(roomOf(house, t)?.name);
+    const name = norm(t.name);
+    const hay = `${room} ${name} ${c ? norm(circuitName(c)) : ''}`;
+    if (!matches(hay, c ? spacesOf(c) : [], kindWord[t.kind])) return false;
+    // First a thing whose own name matches the whole search; then things in a room that does ("bedroom 2" before
+    // Bedroom 1's outlet 2); then the rest, and last the ones only found by another name for their kind.
+    rank.set(t, text.every(w => hit(name, w)) && numbers.every(n => name.split(' ').includes(String(n))) ? 0
+      : words.every(w => starts(room, w)) ? 1
+      : text.every(w => hit(hay, w)) ? 2 : 3);
+    return true;
   });
-  // Things in a room that matches the whole search come first: "bedroom 2" before Bedroom 1's outlet 2.
-  const inRoom = t => words.every(w => norm(roomOf(house, t)?.name).split(' ').some(h => h.startsWith(w)));
-  things.sort((a, b) => inRoom(b) - inRoom(a));
+  things.sort((a, b) => rank.get(a) - rank.get(b));
   // A breaker by its name, as the panel shows it ("28A", "5/7"), even with nothing known about it.
   const circuits = allCircuits(house).filter(c => {
     const name = norm(circuitName(c));
