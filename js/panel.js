@@ -100,11 +100,14 @@ export function panelScreen(house, index = 0) {
   const tabs = `<nav class="ptabs" aria-label="Panels">${house.panels.map((x, i) => `<a href="#/panel/${i}" ${x === panel ? 'aria-current="page"' : ''}>${esc(x.name)}</a>`).join('')}<a href="#/panel/new" class="add">${icon('plus')}Subpanel</a></nav>`;
   const usedRooms = house.rooms.filter(r => M.thingsIn(house, r.id).some(t => t.circuitId && M.panelOf(house, M.findCircuit(house, t.circuitId) || {}) === panel));
   const fresh = !house.rooms.length && !p.mapped && index === 0;
+  // Set up without a breaker in every space, the panel starts empty, so there's nothing to tap and change yet.
+  const what = panel.circuits.length ? 'Tap any breaker that isn’t a 15\u00a0A single-pole and change it'
+    : 'Tap each space that has a breaker to add it, or use Fill empty spaces, then change the ones that aren’t 15\u00a0A single-pole';
   app.innerHTML = `
     ${tabs}
     ${fresh ? `<div class="card start-card">
       <h2>Next: the sizes, then the rooms</h2>
-      <p>Tap any breaker that isn’t a 15\u00a0A single-pole and change it: kitchens and baths are often 20\u00a0A, and the dryer, range, water heater and AC are usually double-pole. The size is printed on the handle.</p>
+      <p>${what}: kitchens and baths are often 20\u00a0A, and the dryer, range, water heater and AC are usually double-pole. The size is printed on the handle.</p>
       <a class="btn small" href="#/rooms">${icon('rooms')}List the rooms</a>
     </div>` : ''}
     <div class="split">
@@ -332,18 +335,19 @@ export function setupScreen(house, { sub = false } = {}) {
       if (!sub) {
         h = M.blankHouse(app.querySelector('#hName').value.trim() || 'Home');
       }
+      const fill = app.querySelector('#fill').checked;
       const panel = M.addPanel(h, {
         name: app.querySelector('#pName').value.trim() || (sub ? 'Subpanel' : 'Main panel'),
         where: app.querySelector('#pWhere').value.trim(),
         spaces,
         mainAmps: mainAmps || null,
-        fill: app.querySelector('#fill').checked ? 15 : 0,
+        fill: fill ? 15 : 0,
         fedBy: sub ? app.querySelector('#fedBy').value || null : null,
       });
       store.put(h);
       store.use(h.id);
       go(`/panel/${h.panels.indexOf(panel)}`);
-      toast(sub ? 'Subpanel added.' : 'Panel made. Tap any breaker that isn’t a single-pole 15 A.');
+      toast(sub ? 'Subpanel added.' : fill ? 'Panel made. Tap any breaker that isn’t a single-pole 15 A.' : 'Panel made. Tap each space that has a breaker, or use Fill empty spaces.');
     },
   });
 }
