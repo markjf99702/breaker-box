@@ -44,6 +44,8 @@ const text = page => page.locator('main').innerText();
 const breaker = (page, name) => page.locator(`.brk[aria-label^="Breaker ${name},"]`);
 const closeSheet = async page => { await page.click('#sheet .sheet-x'); await page.locator('#sheet').waitFor({ state: 'hidden' }); };
 const tab = async (page, name) => { await page.click(`.tabs a[data-tab="${name}"]`); await page.waitForTimeout(150); };
+// Mapping ignores taps for a moment after each step appears, so a double tap's second tap doesn't land on the next.
+const settle = page => page.waitForTimeout(450);
 
 // ---------- Set up the panel ----------
 const me = await device();
@@ -139,8 +141,11 @@ assert.match(await text(page), /Next: breaker 1/);
 await page.click('text=Start with breaker 1');
 assert.match(await page.locator('.say').innerText(), /Flip breaker 1 off/);
 assert.equal(await page.locator('.mini .m-h.me').count(), 1, 'the little panel shows where it is');
-await page.click('text=It’s off');
+// A quick double tap on It's off: the second tap lands on a thing on the walk round that replaces it, and is ignored.
+await page.evaluate(() => { document.querySelector('[data-act="off"]').click(); document.querySelector('.walk .thing').click(); });
+assert.equal(await page.locator('#deadCount').innerText(), '', 'the second tap of a double tap marks nothing dead');
 assert.equal(await page.locator('.tabs').isVisible(), false, 'the tabs make room while walking round');
+await settle(page);
 const walkRoom = name => page.locator('.walk-room', { has: page.locator('h2', { hasText: name }) });
 await walkRoom('Kitchen').locator('.thing', { hasText: 'Outlet 1' }).click();
 await walkRoom('Kitchen').locator('.thing', { hasText: 'Outlet 2' }).click();
@@ -148,6 +153,7 @@ await walkRoom('Kitchen').locator('.thing', { hasText: 'Fridge' }).click();
 await walkRoom('Kitchen').locator('.thing', { hasText: 'Outlet 2' }).click(); // not that one after all
 await walkRoom('Kitchen').locator('.thing', { hasText: 'Outlet 2' }).click(); // yes, that one
 await walkRoom('Kitchen').locator('[data-add$=":light"]').click(); // found a light nobody listed
+await settle(page);
 assert.equal(await page.locator('#deadCount').innerText(), '4 things dead');
 assert.equal(await walkRoom('Kitchen').locator('.thing.dead').count(), 4);
 await fits(page, 'walking round');
@@ -157,6 +163,7 @@ assert.match(await page.locator('.found-card').innerText(), /4 things/);
 assert.equal(await page.locator('#fLabel').getAttribute('placeholder'), 'Kitchen outlets, light, fridge', 'the label writes itself');
 await page.click('text=Next: breaker 2');
 await page.click('text=It’s off');
+await settle(page);
 await page.click('.walk-bar .btn.primary'); // nothing went dead
 assert.match(await text(page), /Nothing went dead on 2/);
 await page.fill('#fLabel', 'Spare');
@@ -493,6 +500,7 @@ await sw.locator('.door').waitFor();
 await tab(sw, 'map');
 await sw.click('.flip-card [data-flip]');
 await sw.click('text=It’s off');
+await settle(sw);
 const jump = await sw.evaluate(async () => {
   const chip = [...document.querySelectorAll('.jump a')].find(a => a.textContent.trim() === 'Office');
   chip.click();
@@ -574,9 +582,11 @@ await named.ctx.close();
 await tab(page, 'map');
 await page.click('text=Start with breaker 3');
 await page.click('text=It’s off');
+await settle(page);
 await walkRoom('Bedroom 1').locator('.thing', { hasText: 'Light 1' }).click();
 await page.reload();
 await page.locator('.walk-bar').waitFor();
+await settle(page);
 assert.equal(await page.locator('#deadCount').innerText(), '1 thing dead', 'part way through, after a reload');
 await page.click('.walk-head [data-act="stop"]');
 await page.waitForFunction(() => navigator.serviceWorker?.controller, null, { timeout: 10000 }).catch(() => {});

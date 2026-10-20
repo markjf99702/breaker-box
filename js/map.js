@@ -40,6 +40,16 @@ export function mapScreen(house) {
 
 const start = (house, fn, id) => { fn(house, id); store.put(house); window.scrollTo(0, 0); mapScreen(house); };
 
+// A quick double tap lands its second tap on whatever the next step drew under the finger, such as a thing on the
+// walk round that didn't go dead. Taps that soon after a step appears are ignored.
+let settleUntil = 0;
+const settle = () => { settleUntil = performance.now() + 400; };
+const settling = e => {
+  if ((e.timeStamp || performance.now()) >= settleUntil) return false;
+  e.preventDefault(); // a room's heading doesn't fold either
+  return true;
+};
+
 // ---------- The starting point ----------
 
 function hub(house) {
@@ -220,6 +230,7 @@ function walkScreen(house, c) {
       <span class="dead-count" id="deadCount" aria-live="polite">${deadText(tapped())}</span>
       <button type="button" class="btn primary big" data-act="on">${tapped() ? 'Done' : 'Nothing went dead'}${icon('next')}</button>
     </div>`;
+  settle();
   const refresh = () => {
     const n = tapped();
     app.querySelector('#deadCount').textContent = deadText(n);
@@ -227,6 +238,7 @@ function walkScreen(house, c) {
   };
   on({
     click(e) {
+      if (settling(e)) return;
       const jump = e.target.closest('[data-jump]');
       if (jump) {
         e.preventDefault();
