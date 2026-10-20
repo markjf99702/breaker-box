@@ -49,14 +49,16 @@ const tab = async (page, name) => { await page.click(`.tabs a[data-tab="${name}"
 const me = await device();
 const page = me.page;
 // Every tool at junkdrawer.works/… shares one address, and so one set of offline copies. Before Breaker Box first
-// loads, put another tool's copy there, and an old one of Breaker Box's own, from a page on the same address.
+// loads, put another tool's copy there, one from a tool whose name starts with Breaker Box's, and an old one of
+// Breaker Box's own, from a page on the same address.
 const CACHE = (await readFile(join(root, 'sw.js'), 'utf8')).match(/const CACHE = '([^']+)'/)[1];
+const OTHER_CACHES = ['every-so-often-v4', 'breaker-box-x-v1'];
 const neighbour = await me.ctx.newPage();
 await neighbour.goto(base + 'another-tool');
-await neighbour.evaluate(async () => {
-  await (await caches.open('every-so-often-v4')).put('every-so-often/', new Response('another tool'));
+await neighbour.evaluate(async others => {
+  for (const name of others) await (await caches.open(name)).put(name.replace(/-v\d+$/, '/'), new Response('another tool'));
   await (await caches.open('breaker-box-v0')).put('breaker-box/', new Response('an old copy'));
-});
+}, OTHER_CACHES);
 await neighbour.close();
 await page.goto(base);
 await page.evaluate(() => document.fonts.ready);
@@ -524,8 +526,8 @@ await page.locator('.walk-bar').waitFor();
 assert.equal(await page.locator('#deadCount').innerText(), '1 thing dead', 'part way through, after a reload');
 await page.click('.walk-head [data-act="stop"]');
 await page.waitForFunction(() => navigator.serviceWorker?.controller, null, { timeout: 10000 }).catch(() => {});
-assert.deepEqual(await page.evaluate(names => Promise.all(names.map(n => caches.has(n))), ['every-so-often-v4', 'breaker-box-v0', CACHE]),
-  [true, false, true], 'the offline copy clears out only its own old caches, never another tool’s');
+assert.deepEqual(await page.evaluate(names => Promise.all(names.map(n => caches.has(n))), [...OTHER_CACHES, 'breaker-box-v0', CACHE]),
+  [true, true, false, true], 'the offline copy clears out only its own old caches, never another tool’s');
 await me.ctx.setOffline(true);
 await page.goto(base + '#/panel');
 await page.reload();

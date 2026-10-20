@@ -15,10 +15,11 @@ self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).then(() => self.skipWaiting()));
 });
 
-// Every tool at junkdrawer.works/… shares this address and its caches, so only clear out Breaker Box's own old copies.
+// Every tool at junkdrawer.works/… shares this address and its caches, so only clear out Breaker Box's own old copies:
+// exactly breaker-box-v and a number, so a tool called breaker-box-something keeps its copy.
 self.addEventListener('activate', e => {
   e.waitUntil(caches.keys()
-    .then(keys => Promise.all(keys.filter(k => k.startsWith('breaker-box-') && k !== CACHE).map(k => caches.delete(k))))
+    .then(keys => Promise.all(keys.filter(k => k !== CACHE && /^breaker-box-v[0-9]+$/.test(k)).map(k => caches.delete(k))))
     .then(() => self.clients.claim()));
 });
 
