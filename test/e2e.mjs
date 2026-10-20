@@ -432,6 +432,33 @@ assert.deepEqual(feederLines, [
   'Hot tub runs for hours at a time, 6,000\u00a0W. The usual guideline keeps that under 80% of the breaker, 5,760\u00a0W here.',
 ]);
 
+// Two of the same on one breaker read as a count: "two space heaters", not "space heater, space heater".
+const repeatLines = await rp.evaluate(async () => {
+  const { M } = window.breakerBox;
+  const { loadLine } = await import('./js/loads.js');
+  const h = M.blankHouse('Den');
+  const c = M.addPanel(h, { spaces: 4, fill: 15 }).circuits[0];
+  const den = M.addRoom(h, 'Den');
+  const add = (name, watts, hours = false) => M.addThing(h, den.id, { kind: 'appliance', name, watts, hours, circuitId: c.id });
+  add('Space heater', 1500, true);
+  add('Space heater', 1500, true);
+  add('Fridge', 700);
+  add('TV', 200);
+  const out = [loadLine(h, M.loadOf(h, c))];
+  h.things = h.things.slice(0, 2);
+  add('Microwave', 1500);
+  out.push(loadLine(h, M.loadOf(h, c)));
+  h.things = h.things.slice(0, 2);
+  c.amps = 30;
+  out.push(loadLine(h, M.loadOf(h, c)));
+  return out;
+});
+assert.deepEqual(repeatLines, [
+  'Running two space heaters and 2 more at once comes to 3,900\u00a0W. A 15\u00a0A breaker at 120\u00a0V carries 1,800\u00a0W, so it will likely trip. Plugging one of the big ones in on another breaker would help.',
+  'Running two space heaters and the microwave at once comes to 4,500\u00a0W. A 15\u00a0A breaker at 120\u00a0V carries 1,800\u00a0W, so it will likely trip. Plugging one of the big ones in on another breaker would help.',
+  'Two space heaters run for hours at a time, 3,000\u00a0W. The usual guideline keeps that under 80% of the breaker, 2,880\u00a0W here.',
+]);
+
 // Making a tandem's B half a single breaker brings A's things over, and says they came from A.
 await breaker(rp, '1B').click();
 await rp.click('#sheet .seg[data-name="poles"] button[data-v="single"]');

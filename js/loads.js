@@ -3,10 +3,28 @@ import * as M from './model.js';
 import { app, esc, on, W, plural, numHTML } from './ui.js';
 import { breakerSheet } from './panel.js';
 
-const names = items => {
-  const n = items.map(i => i.thing.name.replace(/^[A-Z](?=[a-z])/, ch => ch.toLowerCase()));
+// "space heater, microwave and toaster". Two or more of the same are counted, "two space heaters", and past three
+// things it names the biggest two and says how many more. the: "the" before things named one at a time.
+const COUNT = ['', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine'];
+const pluralOf = name => (/s$/i.test(name) ? name : /(x|z|ch|sh)$/i.test(name) ? `${name}es` : /[^aeiou]y$/i.test(name) ? `${name.slice(0, -1)}ies` : `${name}s`);
+const names = (items, the = false) => {
+  const same = [];
+  for (const i of items) {
+    const name = i.thing.name.trim().replace(/^[A-Z](?=[a-z])/, ch => ch.toLowerCase());
+    const key = name.toLowerCase().replace(/\s+/g, ' ');
+    const g = same.find(x => x.key === key);
+    if (g) g.n++; else same.push({ key, name, n: 1 });
+  }
+  let shown = same, more = 0;
+  if (items.length > 3) {
+    shown = [];
+    let named = 0;
+    for (const g of same) { if (named >= 2) break; shown.push(g); named += g.n; }
+    more = items.length - named;
+  }
+  const n = shown.map((g, k) => (g.n > 1 ? `${COUNT[g.n] || g.n} ${pluralOf(g.name)}` : `${the && (k === 0 || shown[k - 1].n > 1) ? 'the ' : ''}${g.name}`));
+  if (more) n.push(`${more} more`);
   if (n.length <= 1) return n.join('');
-  if (n.length > 3) return `${n.slice(0, 2).join(', ')} and ${n.length - 2} more`;
   return `${n.slice(0, -1).join(', ')} and ${n.at(-1)}`;
 };
 const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
@@ -19,7 +37,7 @@ export function loadLine(house, l) {
   const sub = l.sub ? ` That includes ${W(l.subTotal)} on ${esc(l.sub.name)}.` : '';
   let out;
   if (l.status === 'over') {
-    const what = big.length > 1 ? `Running the ${esc(names(big))} at once comes to ${W(l.total)}` : l.sub ? `Everything known on it comes to ${W(l.total)}` : `${esc(cap(names(big)))} alone comes to ${W(l.total)}`;
+    const what = big.length > 1 ? `Running ${esc(names(big, true))} at once comes to ${W(l.total)}` : l.sub ? `Everything known on it comes to ${W(l.total)}` : `${esc(cap(names(big)))} alone comes to ${W(l.total)}`;
     out = `${what}. ${carries}, so it will likely trip.${sub}${big.length > 1 ? ' Plugging one of the big ones in on another breaker would help.' : ''}`;
   } else if (l.status === 'tight' && l.why === 'hours') {
     // Only what runs for hours counts here, whether it's on this breaker, on the subpanel it feeds, or both.
