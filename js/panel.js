@@ -133,7 +133,7 @@ export function panelScreen(house, index = 0) {
         const added = M.fillEmpty(panel, 15);
         store.put(house);
         panelScreen(house, index);
-        toast(`Added ${plural(added.length, '15 A breaker')}. Tap one to change it.`);
+        toast(`Put a 15 A breaker in ${plural(added.length, 'empty space')}. Tap one to change it.`);
       }
     },
   });
