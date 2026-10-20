@@ -224,8 +224,15 @@ export function breakerSheet(house, c, after) {
         close();
         go('/map');
       });
-      body.querySelector('#bRemove').addEventListener('click', () => {
+      body.querySelector('#bRemove').addEventListener('click', e => {
         const n = M.thingsOn(house, c.id).length;
+        // What's on it goes back to not found, and a subpanel it feeds to fed from nothing, so that asks first.
+        const fed = M.feedsPanel(house, c);
+        if ((n || fed) && !e.target.dataset.sure) {
+          e.target.dataset.sure = '1';
+          e.target.textContent = `Tap again to remove breaker ${M.circuitName(c)}${fed ? `, which feeds ${fed.name}` : ''}${n ? `${fed ? ',' : ''} and unmap ${n === 1 ? 'the thing on it' : `its ${n} things`}` : ''}`;
+          return;
+        }
         M.removeCircuit(house, c);
         save();
         close();

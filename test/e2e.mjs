@@ -331,7 +331,25 @@ assert.equal(await left(), '4', 'and counts one fewer as soon as one is found');
 await tab(rp, 'panel');
 await breaker(rp, 23).click();
 await rp.click('#bRemove');
+// Removing a breaker with things on it asks first, since what's on it goes back to not found.
+assert.equal(await rp.locator('#bRemove').innerText(), 'Tap again to remove breaker 23 and unmap the thing on it');
+assert.equal(await breaker(rp, 23).count(), 1, 'not until the second tap');
+await rp.click('#bRemove');
 assert.equal(await rp.locator('#toast').innerText(), 'Removed breaker 23. 1 thing on it is unmapped again.');
+// So does one feeding a subpanel; one with nothing on it goes in one tap.
+await breaker(rp, 11).click();
+await rp.click('#bRemove');
+assert.equal(await rp.locator('#bRemove').innerText(), 'Tap again to remove breaker 11 and unmap its 6 things');
+await closeSheet(rp);
+await breaker(rp, '29/31').click();
+await rp.click('#bRemove');
+assert.equal(await rp.locator('#bRemove').innerText(), 'Tap again to remove breaker 29/31, which feeds Garage subpanel');
+await closeSheet(rp);
+assert.equal(await breaker(rp, 11).count() + await breaker(rp, '29/31').count(), 2, 'both still there');
+await breaker(rp, 32).click();
+await rp.click('#bRemove');
+assert.equal(await rp.locator('#toast').innerText(), 'Removed breaker 32.');
+assert.equal(await breaker(rp, 32).count(), 0);
 await tab(rp, 'map');
 assert.match(await rp.locator('.try-card .say').innerText(), /^Flip breaker \S+ off\.$/, 'trying the next breaker');
 await rp.reload();
